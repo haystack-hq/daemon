@@ -19,6 +19,8 @@
     "express-ws": "^3.0.0",
     "moment": "^2.21.0",
     "node-docker-api": "^1.1.21",
-    "node-singleton-event": "0.0.4"
+    "node-singleton-event": "0.0.4",
+    "route-parser": "0.0.5",
+    "ws": "^5.0.0"
   }
 }

@@ -1,6 +1,7 @@
-var EventBus = require('eventbusjs');
+//var EventBus = require('eventbusjs');
 var Docker = require('dockerode');
 var DockerEvents = require('docker-events');
+var EventBus2 = require('node-singleton-event');
 
 
 var docker_statuses = {
@@ -86,7 +87,9 @@ DockerStackContainer.prototype.terminate = function(){
 
     require('deasync').loopWhile(function(){return !done;});
 
-    self.unsubscribe();
+
+    this.unsubscribe();
+
 
     self.sync();
 }
@@ -139,7 +142,8 @@ DockerStackContainer.prototype.sync = function(){
         }
 
 
-        EventBus.dispatch("docker-stack-service-change", self.docker_stack, self.docker_stack);
+        EventBus2.emit('docker-stack-service-change-' +  self.docker_stack_identifier,  self.docker_stack);
+
     });
 
 

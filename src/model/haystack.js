@@ -126,6 +126,9 @@ Haystack.prototype.connect = function(){
     }
 }
 
+Haystack.prototype.disconnect = function(){
+    this.interface = null;
+}
 
 
 
@@ -141,10 +144,25 @@ Haystack.prototype.stop = function(){
 
 
 Haystack.prototype.terminate = function(){
-    this.status = Haystack.Statuses.terminating;
-    this.interface.terminate();
-    this.terminated_on = Date.now();
-    this.save();
+
+    //validate we are in a status that can be terminated.
+    if(this.status == Haystack.Statuses.provisioning || this.status == Haystack.Statuses.running || this.status == Haystack.Statuses.impared || this.status == Haystack.Statuses.stopped)
+    {
+        this.status = Haystack.Statuses.terminating;
+        this.terminated_on = Date.now();
+        this.save();
+
+        this.interface.terminate();
+
+
+
+    }
+    else {
+        throw ("Can not terminate when in status '" + this.status + "'");
+    }
+
+
+
 }
 
 
@@ -294,6 +312,7 @@ Haystack.prototype.normalizeStatus = function(){
     if(this.status == Haystack.Statuses.terminating){
         if (this.services.filter(function(s) { return s.status === HaystackService.Statuses.terminated; }).length > 0) {
             this.status = Haystack.Statuses.terminated;
+            this.interface = null;
         }
     }
 
@@ -326,8 +345,6 @@ Haystack.prototype.save = function(){
     if(this._id){
         //save existing
         db.stacks.update({_id: this._id}, data, {multi: false, upsert: false});
-
-
     }
     else
     {
@@ -340,8 +357,6 @@ Haystack.prototype.save = function(){
 
     //docker-stack-change
     EventBus2.emit('haystack-change',  this.getStatusData());
-
-
 
 
 

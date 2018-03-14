@@ -10,9 +10,6 @@ var LocalInterface = function(haystack){
     this.docker_stack = new DockerStack(this.haystack.identifier, this.haystack.build, this.haystack.status);
 
 
-    //subscribe to events.
-    //EventBus.addEventListener("haystack-change", LocalInterface.OnChange);
-
     EventBus2.on('docker-stack-change', function(data) {
         LocalInterface.OnChange(data);
     });

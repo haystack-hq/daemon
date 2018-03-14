@@ -34,8 +34,9 @@ var DockerStack = function(identifier, build, status){
 
 
     //subscribe to events
-    EventBus.addEventListener("docker-stack-service-change", DockerStack.OnChange, this);
-
+    EventBus2.on('docker-stack-service-change-' + this.identifier, function(data) {
+        self.sync();
+    });
 
     this.sync();
 
@@ -45,14 +46,14 @@ DockerStack.prototype.start = function(){
     var self = this;
 
     this.status = statuses.starting;
-    this.dispatchEvent();
+    this.sync();
 
     this.containers.forEach(function(docker_stack_container){
         docker_stack_container.start();
     });
 
     this.status = statuses.running;
-    this.dispatchEvent();
+    this.sync();
 
 
 }
@@ -62,14 +63,14 @@ DockerStack.prototype.stop = function(){
     var self = this;
 
     this.status = statuses.stopping;
-    this.dispatchEvent();
+    this.sync();
 
     this.containers.forEach(function(docker_stack_container){
         docker_stack_container.stop();
     });
 
     this.status = statuses.stopped;
-    this.dispatchEvent();
+    this.sync();
 
 }
 
@@ -78,7 +79,7 @@ DockerStack.prototype.terminate = function(){
     var self = this;
 
     this.status = statuses.terminating;
-    this.dispatchEvent();
+    this.sync();
 
     this.containers.forEach(function(docker_stack_container){
         docker_stack_container.stop();
@@ -87,20 +88,12 @@ DockerStack.prototype.terminate = function(){
     });
 
     this.status = statuses.terminated;
-    this.dispatchEvent();
-
-
-}
-
-DockerStack.prototype.dispatchEvent = function(){
     this.sync();
-    EventBus.dispatch("docker-stack-change", this, this);
+
+
 }
 
 
-DockerStack.OnChange = function(event, stack){
-    stack.sync();
-}
 
 
 DockerStack.prototype.sync = function(){
@@ -122,8 +115,6 @@ DockerStack.prototype.sync = function(){
 
 
     //todo: check for docker container errors
-
-
 
 
     EventBus2.emit('docker-stack-change',  {

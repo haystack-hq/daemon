@@ -8,6 +8,9 @@ var server = app.listen(port, function() {
 });
 
 
+//websocket streams
+var streams = require('./api/controllers/streams')(server);
+
 
 //load app
 var haystacks = Haystack.Search();

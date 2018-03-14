@@ -1,8 +1,13 @@
 var express = require('express');
+var app = express();
 var router = express.Router();
 var bodyParser = require('body-parser');
 router.use(bodyParser.urlencoded({ extended: true }));
 router.use(bodyParser.json());
+
+
+
+
 
 
 
@@ -80,20 +85,39 @@ router.post('/', function (req, res) {
 router.delete('/:identifier', function (req, res) {
     var identifier = req.params.identifier;
 
-    var haystack_data = new Haystack.FindOne(identifier)
-
-    if(haystack_data)
+    try
     {
+        var haystack = new Haystack().load(identifier);
+
         var haystack = new Haystack()
         haystack.load(identifier);
         haystack.connect();
         haystack.terminate();
+
+
+    }
+    catch (ex){
+        res.status(401).send(ex);
+    }
+
+
+
+
+    var haystack_data = new Haystack.FindOne(identifier)
+
+    if(haystack_data)
+    {
+
     }
 
     res.status(200).send(haystack.getData());
 
 
 });
+
+
+
+
 
 
 module.exports = router;
