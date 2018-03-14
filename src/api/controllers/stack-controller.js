@@ -5,6 +5,7 @@ router.use(bodyParser.urlencoded({ extended: true }));
 router.use(bodyParser.json());
 
 
+
 Haystack = require("../../model/haystack");
 
 /* get all stacks */
@@ -16,18 +17,61 @@ router.get('/', function (req, res) {
 });
 
 
+router.get('/:identifier', function (req, res) {
+    //return just the one stack
+    try
+    {
+        var identifier = req.params.identifier;
+        var haystack = new Haystack().load(identifier);
+
+        res.status(200).send(haystack);
+    }
+    catch (ex) {
+        res.status(401).send(ex);
+    }
+
+
+});
+
+
 /* create a new stack */
 router.post('/', function (req, res) {
     var identifier = req.body.identifier;
-    var haystack = new Haystack(req.body);
-    haystack.save()
-    haystack.connect();
-    haystack.start();
 
-    res.status(200).send(haystack.getData());
+
+    //check to see if this stack exists.
+    var results = Haystack.Search({identifier: identifier});
+
+
+    //remove and terminated statuses
+    results.forEach(function (hs) {
+        var stack = new Haystack().load(identifier);
+        if(stack.status == Haystack.Statuses.terminated){
+            stack.delete();
+        }
+    });
+
+    //check again to see if we can proceed.
+    var results = Haystack.Search({identifier: identifier});
+
+    if(results.length == 0)
+    {
+        var haystack = new Haystack(req.body);
+        haystack.save()
+        haystack.connect();
+        haystack.start();
+
+        res.status(200).send(haystack.getData());
+    }
+    else
+    {
+        res.status(401).send("There is already a stack with the id '" + identifier + "'.");
+    }
+
+
 });
 
-/* start / stop stack */
+/* restart / stop stack */
 //todo: start stack.
 
 

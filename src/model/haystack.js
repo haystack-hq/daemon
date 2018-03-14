@@ -3,6 +3,7 @@ var db = require('./../db/db-conn');
 var LocalInterface = require('./../interface/local/local-interface');
 var HaystackService = require('./haystack-service');
 var base64 = require("base-64");
+var EventBus2 = require('node-singleton-event');
 
 var modes = {
     local: "local"
@@ -47,12 +48,12 @@ var Haystack = function(data){
     this.do_mount = false;
     this.haystack_file = null;
     this.build = null;
+    this.terminated_on = null;
 
 
     //set the data if it was passed in to a new stack.
     if(data){
         this._setData(data);
-
     }
 
 
@@ -71,6 +72,7 @@ Haystack.prototype._setData = function(data){
     this.health = data.health ? data.health : this.health;
     this.created_by = data.created_by ? data.created_by : this.created_by;
     this.mount = data.mount ? data.mount : this.mount;
+    this.terminated_on = data.terminated_on ? data.terminated_on : this.terminated_on;
 
 
     //decode stack data
@@ -139,9 +141,10 @@ Haystack.prototype.stop = function(){
 
 
 Haystack.prototype.terminate = function(){
+    this.status = Haystack.Statuses.terminating;
     this.interface.terminate();
-    this.delete();
-
+    this.terminated_on = Date.now();
+    this.save();
 }
 
 
@@ -163,7 +166,23 @@ Haystack.prototype.getData = function(){
         stack_file_location: this.stack_file_location,
         status: this.status,
         health: this.health,
-        do_mount: this.do_mount
+        do_mount: this.do_mount,
+        terminated_on: this.terminated_on
+    }
+
+    return data;
+}
+
+
+Haystack.prototype.getStatusData = function(){
+
+    //create a data object to be saved.
+    var data = {
+        identifier: this.identifier,
+        services: this.services,
+        status: this.status,
+        health: this.health,
+        terminated_on: this.terminated_on
     }
 
     return data;
@@ -272,6 +291,11 @@ Haystack.prototype.normalizeStatus = function(){
     status == terminating
     all services are terminated.
      */
+    if(this.status == Haystack.Statuses.terminating){
+        if (this.services.filter(function(s) { return s.status === HaystackService.Statuses.terminated; }).length > 0) {
+            this.status = Haystack.Statuses.terminated;
+        }
+    }
 
 
 }
@@ -302,6 +326,8 @@ Haystack.prototype.save = function(){
     if(this._id){
         //save existing
         db.stacks.update({_id: this._id}, data, {multi: false, upsert: false});
+
+
     }
     else
     {
@@ -309,10 +335,18 @@ Haystack.prototype.save = function(){
         db.stacks.save(data);
         var stack = db.stacks.findOne({identifier : this.identifier});
         this._id = stack._id;
+
     }
 
+    //docker-stack-change
+    EventBus2.emit('haystack-change',  this.getStatusData());
+
+
+
+
+
     return this;
-    //todo: websocket.
+
 }
 
 
