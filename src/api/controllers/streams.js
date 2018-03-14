@@ -1,5 +1,5 @@
 var EventBus2 = require('node-singleton-event');
-const WebSocket = require('ws');
+    const WebSocket = require('ws');
 const url = require('url');
 Route = require('route-parser');
 
