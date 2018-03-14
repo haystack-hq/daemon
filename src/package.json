@@ -1,0 +1,22 @@
+{
+  "name": "haystack-agent",
+  "version": "1.0.0",
+  "description": "Haystack agent",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "base-64": "^0.1.0",
+    "chai-as-promised": "^7.1.1",
+    "deasync": "^0.1.12",
+    "diskdb": "^0.1.17",
+    "docker-events": "0.0.2",
+    "dockerode": "^2.5.4",
+    "express": "^4.16.3",
+    "node-docker-api": "^1.1.21",
+    "node-singleton-event": "0.0.4"
+  }
+}

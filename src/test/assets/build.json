@@ -1,0 +1,40 @@
+{
+    "objects": {
+    "builds": [
+        {
+            "image": "test-build-image",
+            "tag": "test-with-custom-image"
+        }
+    ],
+        "images": [
+        {
+            "name": "tutum/hello-world"
+        }
+    ],
+        "containers": [
+        {
+            "image": "tutum/hello-world",
+            "name": "web_1",
+            "detach": true,
+            "ports": [
+                {
+                    "container": "80",
+                    "host": "4454"
+                }
+            ]
+        },
+        {
+            "image": "tutum/hello-world",
+            "name": "web_2",
+            "detach": true,
+            "ports": [
+                {
+                    "container": "80",
+                    "host": "4455"
+                }
+            ]
+        }
+    ],
+        "networks": []
+}
+}
