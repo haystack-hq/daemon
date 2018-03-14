@@ -93,6 +93,12 @@ Haystack.prototype._setData = function(data){
         }
     }
 
+    //handle the stack file location.
+    if(this.stack_file_location != null)
+    {
+
+    }
+
 
 
 
@@ -115,6 +121,8 @@ Haystack.prototype.load = function(identifier){
     return this;
 }
 
+
+/* connect to the local interface */
 Haystack.prototype.connect = function(){
     //get interface .
     if(this.mode == modes.local){
@@ -129,7 +137,6 @@ Haystack.prototype.connect = function(){
 Haystack.prototype.disconnect = function(){
     this.interface = null;
 }
-
 
 
 Haystack.prototype.start = function(){
@@ -361,6 +368,12 @@ Haystack.prototype.save = function(){
 
 
     return this;
+
+}
+
+
+Haystack.FindStackFileFromPath = function(path){
+    //traverse up the path to find the stack file.
 
 }
 
