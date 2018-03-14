@@ -8,8 +8,6 @@ var server = app.listen(port, function() {
 });
 
 
-//todo: create websocket
-
 
 //load app
 var haystacks = Haystack.Search();

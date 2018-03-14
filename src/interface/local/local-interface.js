@@ -13,7 +13,7 @@ var LocalInterface = function(haystack){
     //subscribe to events.
     //EventBus.addEventListener("haystack-change", LocalInterface.OnChange);
 
-    EventBus2.on('haystack-change', function(data) {
+    EventBus2.on('docker-stack-change', function(data) {
         LocalInterface.OnChange(data);
     });
 
@@ -139,9 +139,6 @@ LocalInterface.normalizeServices = function(data)
 LocalInterface.OnChange = function(data){
 
     data = LocalInterface.normalizeServices(data);
-
-    console.log(data);
-
     Haystack.FindAndUpdate(data.identifier, data);
 
 }

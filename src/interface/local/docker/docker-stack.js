@@ -34,7 +34,7 @@ var DockerStack = function(identifier, build, status){
 
 
     //subscribe to events
-    EventBus.addEventListener("docker-stack-change", DockerStack.OnChange, this);
+    EventBus.addEventListener("docker-stack-service-change", DockerStack.OnChange, this);
 
 
     this.sync();
@@ -126,7 +126,7 @@ DockerStack.prototype.sync = function(){
 
 
 
-    EventBus2.emit('haystack-change',  {
+    EventBus2.emit('docker-stack-change',  {
         identifier: this.identifier,
         status: this.status,
         error: this.error,

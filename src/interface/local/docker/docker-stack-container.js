@@ -59,7 +59,6 @@ DockerStackContainer.prototype.stop = function(){
     var done = false;
 
     this.container.stop().then(function () {
-        self.unsubscribe();
         done = true;
     }).catch(function (err) {
         //todo: handle simple error
@@ -81,12 +80,13 @@ DockerStackContainer.prototype.terminate = function(){
         done = true;
     }).catch(function (err) {
         //todo: handle simple error
-        self.unsubscribe();
         done = true;
     });
 
 
     require('deasync').loopWhile(function(){return !done;});
+
+    self.unsubscribe();
 
     self.sync();
 }
@@ -139,7 +139,7 @@ DockerStackContainer.prototype.sync = function(){
         }
 
 
-        EventBus.dispatch("docker-stack-change", self.docker_stack, self.docker_stack);
+        EventBus.dispatch("docker-stack-service-change", self.docker_stack, self.docker_stack);
     });
 
 
