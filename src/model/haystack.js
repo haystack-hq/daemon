@@ -3,34 +3,16 @@ var db = require('./../db/db-conn');
 var LocalInterface = require('./../interface/local/local-interface');
 var HaystackService = require('./haystack-service');
 var base64 = require("base-64");
-var EventBus2 = require('node-singleton-event');
-
-var modes = {
-    local: "local"
-}
-
-var health = {
-    healthy: "healthy",
-    unhealthy: "unhealthy"
-}
-
-var statuses = {
-    pending: "pending",
-    starting: "starting",
-    provisioning: "provisioning",
-    impared: "impared",
-    running: "running",
-    paused: "paused",
-    stopping: "stopping",
-    stopped: "stopped",
-    terminating: "terminating",
-    terminated: "terminated"
-}
 
 
 
 
-var Haystack = function(data){
+
+
+
+var Haystack = function(event_bus, data){
+    this.event_bus = event_bus;
+
 
     //set defaults.
     this._id = null;
@@ -38,11 +20,11 @@ var Haystack = function(data){
     this.services = null;
     this.haystack_file_encoded = null;
     this.build_encoded = null;
-    this.mode = modes.local;
+    this.mode = Haystack.Mode.local;
     this.provider = null;
     this.stack_file_location = null;
-    this.status = statuses.pending;
-    this.health = health.unhealthy;
+    this.status = Haystack.Statuses.pending;
+    this.health = Haystack.Health.unhealthy;
     this.interface = null;
     this.created_by = null;
     this.do_mount = false;
@@ -57,9 +39,12 @@ var Haystack = function(data){
     }
 
 
+    return this;
+
 }
 
 Haystack.prototype._setData = function(data){
+
 
     this._id = data._id ? data._id : null;
     this.identifier = data.identifier ? data.identifier : null;
@@ -71,13 +56,19 @@ Haystack.prototype._setData = function(data){
     this.status = data.status ? data.status : this.status;
     this.health = data.health ? data.health : this.health;
     this.created_by = data.created_by ? data.created_by : this.created_by;
-    this.mount = data.mount ? data.mount : this.mount;
+    this.do_mount = data.do_mount ? data.do_mount : this.do_mount;
     this.terminated_on = data.terminated_on ? data.terminated_on : this.terminated_on;
 
 
     //decode stack data
-    this.haystack_file = JSON.parse(base64.decode(this.haystack_file_encoded));
-    this.build = JSON.parse(base64.decode(this.build_encoded));
+    if(this.haystack_file_encoded){
+        this.haystack_file = JSON.parse(base64.decode(this.haystack_file_encoded));
+    }
+
+    if(this.build_encoded){
+        this.build = JSON.parse(base64.decode(this.build_encoded));
+    }
+
 
     //services
     this.services = data.services ? data.services : this.services;
@@ -85,7 +76,7 @@ Haystack.prototype._setData = function(data){
     if(data.services){
         this.services = data.services
     }
-    else if(this.services == null){
+    else if(this.services == null && this.haystack_file){
         this.services = [];
         for( key in this.haystack_file.services)
         {
@@ -113,27 +104,32 @@ Haystack.prototype.load = function(identifier){
     }
 
     return this;
-}
+};
 
 Haystack.prototype.connect = function(){
+
     //get interface .
-    if(this.mode == modes.local){
+    if(this.mode == Haystack.Mode.local){
         this.interface = new LocalInterface(this);
     }
     else
     {
         throw ("Invalid mode '" + this.mode + "'");
     }
-}
+};
 
 Haystack.prototype.disconnect = function(){
+
+    if(this.interface){
+
+    }
     this.interface = null;
-}
+};
 
 
 
 Haystack.prototype.start = function(){
-    this.updateStatus(statuses.starting);
+    this.updateStatus(Haystack.Statuses.starting);
     this.interface.start();
 }
 
@@ -145,16 +141,18 @@ Haystack.prototype.stop = function(){
 
 Haystack.prototype.terminate = function(){
 
+    console.log("this.status", this.status);
+
+    var bypass = true;
+
     //validate we are in a status that can be terminated.
-    if(this.status == Haystack.Statuses.provisioning || this.status == Haystack.Statuses.running || this.status == Haystack.Statuses.impared || this.status == Haystack.Statuses.stopped)
+    if(bypass == true || this.status == Haystack.Statuses.provisioning || this.status == Haystack.Statuses.running || this.status == Haystack.Statuses.impared || this.status == Haystack.Statuses.stopped)
     {
         this.status = Haystack.Statuses.terminating;
         this.terminated_on = Date.now();
         this.save();
 
         this.interface.terminate();
-
-
 
     }
     else {
@@ -175,6 +173,7 @@ Haystack.prototype.getData = function(){
 
     //create a data object to be saved.
     var data = {
+        _id: this._id,
         identifier: this.identifier,
         services: this.services,
         haystack_file_encoded: this.haystack_file_encoded,    //todo: determine if this should this be reencoded incase there was a change
@@ -184,8 +183,11 @@ Haystack.prototype.getData = function(){
         stack_file_location: this.stack_file_location,
         status: this.status,
         health: this.health,
+        created_by: this.created_by,
         do_mount: this.do_mount,
-        terminated_on: this.terminated_on
+        terminated_on: this.terminated_on,
+        haystack_file: this.haystack_file,
+        build: this.build
     }
 
     return data;
@@ -337,6 +339,14 @@ Haystack.prototype.findService = function(name){
     return service;
 }
 
+Haystack.prototype.sync = function(){
+
+    this.connect();
+    this.interface.sync();
+    this.disconnect();
+
+}
+
 Haystack.prototype.save = function(){
 
     var data = this.getData();
@@ -355,8 +365,11 @@ Haystack.prototype.save = function(){
 
     }
 
+
+    console.log('haystack-update', this.getStatusData());
+
     //docker-stack-change
-    EventBus2.emit('haystack-change',  this.getStatusData());
+    this.event_bus.emit('haystack-update',  this.getStatusData());
 
 
 
@@ -389,38 +402,13 @@ Haystack.FindOne = function(identifier){
         throw(ex);
     }
 
-
     return stack_data;
 
-
 }
 
 
 
-Haystack.FindAndUpdate = function(identifier, data){
 
-    try
-    {
-        var haystack = new Haystack().load(identifier);
-        //update the stack services correctly.
-        haystack.normalizeServices(data.services);
-        haystack.normalizeStatus();
-
-
-        //save the data
-        haystack.save();
-
-
-        //todo: handle no stat_data
-    }
-    catch (ex){
-        //todo: log exception
-    }
-
-
-
-
-}
 
 Haystack.Statuses = {
     pending: "pending",
@@ -433,5 +421,19 @@ Haystack.Statuses = {
     terminating: "terminating",
     terminated: "terminated"
 }
+
+
+
+Haystack.Health = {
+    healthy: "healthy",
+    unhealthy: "unhealthy"
+}
+
+
+Haystack.Mode = {
+    local: "local"
+}
+
+
 
 module.exports = Haystack;

@@ -10,10 +10,11 @@
   "license": "ISC",
   "dependencies": {
     "base-64": "^0.1.0",
+    "bluebird": "^3.5.1",
     "chai-as-promised": "^7.1.1",
     "deasync": "^0.1.12",
     "diskdb": "^0.1.17",
-    "docker-events": "0.0.2",
+    "docker-remote-api": "^4.4.1",
     "dockerode": "^2.5.4",
     "express": "^4.16.3",
     "express-ws": "^3.0.0",

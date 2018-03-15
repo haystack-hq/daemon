@@ -27,7 +27,7 @@ router.get('/:identifier', function (req, res) {
     try
     {
         var identifier = req.params.identifier;
-        var haystack = new Haystack().load(identifier);
+        var haystack = new Haystack(req.event_bus).load(identifier);
 
         res.status(200).send(haystack);
     }
@@ -50,7 +50,7 @@ router.post('/', function (req, res) {
 
     //remove and terminated statuses
     results.forEach(function (hs) {
-        var stack = new Haystack().load(identifier);
+        var stack = new Haystack(req.event_bus).load(identifier);
         if(stack.status == Haystack.Statuses.terminated){
             stack.delete();
         }
@@ -61,7 +61,7 @@ router.post('/', function (req, res) {
 
     if(results.length == 0)
     {
-        var haystack = new Haystack(req.body);
+        var haystack = new Haystack(req.event_bus, req.body);
         haystack.save()
         haystack.connect();
         haystack.start();
@@ -87,14 +87,13 @@ router.delete('/:identifier', function (req, res) {
 
     try
     {
-        var haystack = new Haystack().load(identifier);
+        var haystack = new Haystack(req.event_bus).load(identifier);
 
-        var haystack = new Haystack()
-        haystack.load(identifier);
         haystack.connect();
         haystack.terminate();
 
 
+        res.status(200).send(haystack.getData());
     }
     catch (ex){
         res.status(401).send(ex);
@@ -103,14 +102,7 @@ router.delete('/:identifier', function (req, res) {
 
 
 
-    var haystack_data = new Haystack.FindOne(identifier)
 
-    if(haystack_data)
-    {
-
-    }
-
-    res.status(200).send(haystack.getData());
 
 
 });

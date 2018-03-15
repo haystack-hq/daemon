@@ -1,0 +1,22 @@
+{
+  "variables": [
+    {
+      "key": "value"
+    },
+    {
+      "key": { "childkey": "childvalue" }
+    }
+  ],
+
+  "services": {
+    "web_1": {
+      "type": "docker.image",
+      "image": "hello-world"
+    },
+
+    "web_2": {
+      "type": "docker.build",
+      "src": "."
+    }
+  }
+}

@@ -12,7 +12,7 @@ describe('Stack', function() {
 
     this.timeout(2000);
 
-
+    /*
     it("should start a DockerStack.", function(){
         var identifier = "test";
         var build = require("../../../assets/build.json");
@@ -50,7 +50,8 @@ describe('Stack', function() {
 
     });
 
+    */
 
 
 
-})
+});

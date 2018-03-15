@@ -1,22 +1,14 @@
-var Haystack = require("./model/haystack");
-var app = require('./agent');
+var App = require('./app');
 
-// server.js
-var port = process.env.PORT || 3000;
-var server = app.listen(port, function() {
-    console.log('Haystack Client Agent listening on port ' + port);
-});
+//init app
+var app = new App();
 
-
-//websocket streams
-var streams = require('./api/controllers/streams')(server);
+//start app
+app.start();
 
 
-//load app
-var haystacks = Haystack.Search();
-haystacks.forEach(function (haystack_data) {
-    var haystack = new Haystack(haystack_data);
-});
+
+
 
 
 

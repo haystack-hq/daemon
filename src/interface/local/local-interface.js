@@ -1,6 +1,4 @@
-var EventBus = require('eventbusjs');
 var DockerStack = require("./docker/docker-stack");
-var EventBus2 = require('node-singleton-event');
 Haystack = require("../../model/haystack");
 HaystackService = require("../../model/haystack-service");
 
@@ -8,36 +6,50 @@ HaystackService = require("../../model/haystack-service");
 var LocalInterface = function(haystack){
     this.haystack = haystack;
     this.docker_stack = new DockerStack(this.haystack.identifier, this.haystack.build, this.haystack.status);
-
-
-    EventBus2.on('docker-stack-change', function(data) {
-        LocalInterface.OnChange(data);
-    });
-
 }
+
 
 
 LocalInterface.prototype.start = function(){
     var self = this;
     self.docker_stack.start();
-
 }
-
 
 
 LocalInterface.prototype.stop = function(){
     this.docker_stack.stop();
 }
 
+
 LocalInterface.prototype.terminate = function(){
-    this.docker_stack.terminate();
+    var self = this;
+    this.docker_stack.terminate().then(function () {
+        self.sync();
+    });
 }
 
 
-LocalInterface.normalizeServices = function(data)
+LocalInterface.prototype.sync = function(){
+    var self = this;
+
+    this.docker_stack.sync().then(function(data){
+        var normalized_services = LocalInterface.normalizeServices(data.services);
+        self.haystack.normalizeServices(normalized_services);
+        self.haystack.normalizeStatus();
+        //save the stack;
+        self.haystack.save();
+    }).catch(function (err) {
+        console.log("LocalInterface.prototype.sync", err);
+        //todo: handle error
+    });
+
+
+}
+
+LocalInterface.normalizeServices = function(services)
 {
 
-    data.services.forEach(function(service){
+    services.forEach(function(service){
         //normalize status.
 
         service.container_status = service.status;
@@ -124,19 +136,10 @@ LocalInterface.normalizeServices = function(data)
 
 
 
-
-
     });
 
-    return data;
+    return services;
 
-
-}
-
-LocalInterface.OnChange = function(data){
-
-    data = LocalInterface.normalizeServices(data);
-    Haystack.FindAndUpdate(data.identifier, data);
 
 }
 
