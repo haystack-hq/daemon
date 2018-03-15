@@ -12,12 +12,17 @@ var LocalInterface = function(haystack){
 
 LocalInterface.prototype.start = function(){
     var self = this;
-    self.docker_stack.start();
+    self.docker_stack.start().then(function () {
+        self.sync();
+    });
 }
 
 
 LocalInterface.prototype.stop = function(){
-    this.docker_stack.stop();
+    this.docker_stack.stop().then(function () {
+        self.sync();
+    });
+
 }
 
 
