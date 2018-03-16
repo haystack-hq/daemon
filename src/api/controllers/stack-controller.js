@@ -62,7 +62,7 @@ router.post('/', function (req, res) {
     if(results.length == 0)
     {
         var haystack = new Haystack(req.event_bus, req.body);
-        haystack.save()
+        haystack.save();
         haystack.connect();
         haystack.start();
 
@@ -99,11 +99,7 @@ router.delete('/:identifier', function (req, res) {
         res.status(401).send(ex);
     }
 
-
-
-
-
-
+    
 
 });
 
