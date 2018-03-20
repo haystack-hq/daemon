@@ -22,6 +22,24 @@ Body:
 Note: you can find a basic stack file in resources/simple-haystack-file/Haystackfile.json
 
 
+#Find a stack by Haystackfile or child direcotory.
+
+POST
+
+http://127.0.0.1:3000/stacks/search
+
+Content-Type:
+application/json
+
+
+Body:
+```
+{
+"stack_file_location": "/absolute/path/to/the/stack/file/on/the/machine/or/child/dir."
+}
+```
+
+
 
 #Config
 ####stacks.terminated_remove_after
