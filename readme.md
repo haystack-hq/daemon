@@ -11,14 +11,15 @@ application/json
 
 
 Body:
-```{
+```
+{
 "provider": "local",
 "identifier": "the-unique-stack-identifer",
 "stack_file_location": "/absolute/path/to/the/stack/file/on/the/machine."
 }
 ```
 
-Note: you can find a basic stack file in resources/simple-haystack-file/Haystack.json
+Note: you can find a basic stack file in resources/simple-haystack-file/Haystackfile.json
 
 
 
