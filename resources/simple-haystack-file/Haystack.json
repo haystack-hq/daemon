@@ -1,0 +1,25 @@
+{
+  "services": {
+    "web_1": {
+      "type": "docker.container",
+      "image": "tutum/hello-world",
+      "ports": [
+        {
+          "container": "80",
+          "host": "4458"
+        }
+      ]
+    },
+
+    "web_2": {
+      "type": "docker.container",
+      "image": "tutum/hello-world",
+      "ports": [
+        {
+          "container": "80",
+          "host": "4459"
+        }
+      ]
+    }
+  }
+}
