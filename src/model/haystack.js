@@ -3,11 +3,14 @@ var db = require('./../db/db-conn');
 var LocalInterface = require('./../interface/local/local-interface');
 var HaystackService = require('./haystack-service');
 var base64 = require("base-64");
-var findParentDir = require('find-parent-dir');
 var fs  = require('fs-extra');
 var path = require('path');
 var moment = require('moment');
 var homedir = require("homedir");
+
+
+var findup = require('findup-sync');
+
 
 
 
@@ -345,38 +348,31 @@ Haystack.prototype.sync = function(){
 }
 
 
-//todo: should this be reporposed?
-Haystack.prototype.findHaystackFilePath = function(){
-    var haystackfilePath = null;
+Haystack.FindHaystackFilePath = function(path_provided){
 
-    var pathProvided = this.stack_file_location;
+    var file = null;
 
-    //get the directory of the file passed in.
-    var dir = path.dirname(pathProvided);
+    try {
 
-    console.log("DIR", pathProvided, dir);
+        var stats = fs.statSync(path_provided);
+        if(stats.isFile()){
+            path_provided = path.dirname(path_provided)
+        }
 
 
-    //traverse up until a haystack file is found.
-    //look for yaml.
-    var parent = findParentDir.sync(dir, 'Haystackfile.yml');
-    haystackfilePath = parent + "/" + 'Haystackfile.yml';
+        var file = findup('Haystackfile.*', {cwd: path_provided, nocase: true});
 
-    //look for JSON
-    if(parent == null)
-    {
-        var parent = findParentDir.sync(dir, 'Haystackfile.json');
-        haystackfilePath = parent + "/" + 'Haystackfile.json';
     }
-
-    if(parent == null){
-        this.haystack_file_error = "File not found ";
+    catch (ex){
+        //nothing to do.
+        //todo: log?
     }
 
 
-    this.stack_file_location = haystackfilePath;
 
-    console.log("DIR", pathProvided, dir, parent, haystackfilePath);
+
+    return file ? file : null;
+
 
 }
 

@@ -22,6 +22,30 @@ router.get('/', function (req, res) {
 });
 
 
+router.get('/', function (req, res) {
+    //return all the stacks
+    var haystacks = Haystack.Search();
+    res.status(200).send(haystacks);
+});
+
+
+router.post('/search', function (req, res) {
+
+    var params = req.body;
+
+    if(params.stack_file_location)
+    {
+        //find the haystack file,
+        params.stack_file_location = Haystack.FindHaystackFilePath(params.stack_file_location)
+    }
+
+    console.log(params);
+
+    var haystacks = Haystack.Search(params);
+    res.status(200).send(haystacks);
+});
+
+
 router.get('/:identifier', function (req, res) {
     //return just the one stack
     try

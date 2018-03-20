@@ -20,9 +20,12 @@
     "docker-remote-api": "^4.4.1",
     "express": "^4.16.3",
     "find-parent-dir": "^0.3.0",
+    "findup-sync": "^2.0.0",
     "fs-extra": "^5.0.0",
+    "fs-finder": "^1.8.1",
     "homedir": "^0.6.0",
     "jsuck": "0.0.5",
+    "micromatch": "^3.1.9",
     "moment": "^2.21.0",
     "ws": "^5.0.0"
   }

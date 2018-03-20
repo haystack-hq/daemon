@@ -11,7 +11,6 @@ Streams.prototype.listen = function(){
 
     this.wss.on('connection', function connection(ws, req) {
 
-
         self.event_bus.on('haystack-update', function(data) {
             var message = {
                 event: "haystack-change",
