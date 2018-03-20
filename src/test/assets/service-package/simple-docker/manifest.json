@@ -1,0 +1,19 @@
+{
+  "name": "docker.container",
+  "version": "0.1",
+  "local_build": "local-build.js",
+  "digital_ocean_build": "native-build.js",
+  "properties": [
+    {
+      "label": "image",
+      "type": "string",
+      "required": false
+    },
+    {
+      "label": "ports",
+      "type": "array",
+      "required": false
+    }
+  ]
+}
+

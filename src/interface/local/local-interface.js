@@ -1,17 +1,34 @@
 var DockerStack = require("./docker/docker-stack");
 Haystack = require("../../model/haystack");
 HaystackService = require("../../model/haystack-service");
+var Build = require("./../../lib/build/local-build");
 
 
 var LocalInterface = function(haystack){
     this.haystack = haystack;
+
+    //create the build.
+    if(this.haystack.build == null){
+        this.compileBuild();
+    }
+
+
     this.docker_stack = new DockerStack(this.haystack.identifier, this.haystack.build, this.haystack.status);
+}
+
+LocalInterface.prototype.compileBuild = function(){
+    var build = new Build(this.haystack.identifier, this.haystack.haystack_file);
+    this.haystack.build = build.build();
 }
 
 
 
 LocalInterface.prototype.start = function(){
     var self = this;
+
+    //recompile build
+    this.compileBuild();
+
     self.docker_stack.start().then(function () {
         self.sync();
     });

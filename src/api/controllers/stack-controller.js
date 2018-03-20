@@ -48,7 +48,7 @@ router.post('/', function (req, res) {
     var results = Haystack.Search({identifier: identifier});
 
 
-    //remove and terminated statuses
+    //remove and terminated cat be deleted.
     results.forEach(function (hs) {
         var stack = new Haystack(req.event_bus).load(identifier);
         if(stack.status == Haystack.Statuses.terminated){
@@ -99,7 +99,7 @@ router.delete('/:identifier', function (req, res) {
         res.status(401).send(ex);
     }
 
-    
+
 
 });
 

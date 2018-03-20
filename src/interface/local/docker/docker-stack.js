@@ -17,8 +17,6 @@ var statuses = {
 var DockerStack = function(identifier, build, status){
     var self = this;
     this.docker = new Docker();
-
-
     this.identifier = identifier;
     this.build = build;
     this.containers = this.build.objects.containers;

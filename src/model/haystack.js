@@ -3,7 +3,9 @@ var db = require('./../db/db-conn');
 var LocalInterface = require('./../interface/local/local-interface');
 var HaystackService = require('./haystack-service');
 var base64 = require("base-64");
-
+var findParentDir = require('find-parent-dir');
+var fs  = require('fs-extra');
+var path = require('path');
 
 
 
@@ -18,11 +20,8 @@ var Haystack = function(event_bus, data){
     this._id = null;
     this.identifier = null;
     this.services = null;
-    this.haystack_file_encoded = null;
-    this.build_encoded = null;
     this.mode = Haystack.Mode.local;
     this.provider = null;
-    this.stack_file_location = null;
     this.status = Haystack.Statuses.pending;
     this.health = Haystack.Health.unhealthy;
     this.interface = null;
@@ -32,6 +31,19 @@ var Haystack = function(event_bus, data){
     this.build = null;
     this.terminated_on = null;
 
+    /* get / find the stack file based on the path provided. */
+    if(data && data.stack_file_location && this.mode == Haystack.Mode.local){
+        this.stack_file_location = data.stack_file_location;
+
+        this.setHaystackFilePath();
+
+        console.log("this.stack_file_location", this.stack_file_location);
+
+        //get the contents from the path
+        data.haystack_file = require(this.stack_file_location);
+
+        console.log("this.haystack_file", this.haystack_file);
+    }
 
     //set the data if it was passed in to a new stack.
     if(data){
@@ -43,13 +55,13 @@ var Haystack = function(event_bus, data){
 
 }
 
+
+
 Haystack.prototype._setData = function(data){
 
 
     this._id = data._id ? data._id : null;
     this.identifier = data.identifier ? data.identifier : null;
-    this.haystack_file_encoded = data.haystack_file_encoded ? data.haystack_file_encoded : this.haystack_file_encoded;
-    this.build_encoded = data.build_encoded ? data.build_encoded : this.build_encoded;
     this.mode = data.mode ? data.mode : this.mode;
     this.provider = data.provider ? data.provider : this.provider;
     this.stack_file_location = data.stack_file_location ? data.stack_file_location : this.stack_file_location;
@@ -58,17 +70,7 @@ Haystack.prototype._setData = function(data){
     this.created_by = data.created_by ? data.created_by : this.created_by;
     this.do_mount = data.do_mount ? data.do_mount : this.do_mount;
     this.terminated_on = data.terminated_on ? data.terminated_on : this.terminated_on;
-
-
-    //decode stack data
-    if(this.haystack_file_encoded){
-        this.haystack_file = JSON.parse(base64.decode(this.haystack_file_encoded));
-    }
-
-    if(this.build_encoded){
-        this.build = JSON.parse(base64.decode(this.build_encoded));
-    }
-
+    this.haystack_file = data.haystack_file ? data.haystack_file : null;
 
     //services
     this.services = data.services ? data.services : this.services;
@@ -83,8 +85,6 @@ Haystack.prototype._setData = function(data){
             this.services.push(new HaystackService(key));
         }
     }
-
-
 
 
     return this;
@@ -117,6 +117,11 @@ Haystack.prototype.connect = function(){
         throw ("Invalid mode '" + this.mode + "'");
     }
 };
+
+
+Haystack.findHaystackfileFromPath = function(path){
+
+}
 
 Haystack.prototype.disconnect = function(){
 
@@ -176,8 +181,6 @@ Haystack.prototype.getData = function(){
         _id: this._id,
         identifier: this.identifier,
         services: this.services,
-        haystack_file_encoded: this.haystack_file_encoded,    //todo: determine if this should this be reencoded incase there was a change
-        build_encoded: this.build_encoded,         //todo: determine if this should this be reencoded incase there was a change
         mode: this.mode,
         provider: this.provider,
         stack_file_location: this.stack_file_location,
@@ -347,6 +350,41 @@ Haystack.prototype.sync = function(){
 
 }
 
+Haystack.prototype.setHaystackFilePath = function(){
+    var haystackfilePath = null;
+
+    var pathProvided = this.stack_file_location;
+
+    //get the directory of the file passed in.
+    var dir = path.dirname(pathProvided);
+
+    console.log("DIR", pathProvided, dir);
+
+
+    //traverse up until a haystack file is found.
+    //look for yaml.
+    var parent = findParentDir.sync(dir, 'Haystackfile.yml');
+    haystackfilePath = parent + "/" + 'Haystackfile.yml';
+
+    //look for JSON
+    if(parent == null)
+    {
+        var parent = findParentDir.sync(dir, 'Haystackfile.json');
+        haystackfilePath = parent + "/" + 'Haystackfile.json';
+    }
+
+    if(parent == null){
+        this.haystack_file_error = "File not found ";
+    }
+
+
+    this.stack_file_location = haystackfilePath;
+
+    console.log("DIR", pathProvided, dir, parent, haystackfilePath);
+
+}
+
+
 Haystack.prototype.save = function(){
 
     var data = this.getData();
@@ -376,6 +414,8 @@ Haystack.prototype.save = function(){
     return this;
 
 }
+
+
 
 
 Haystack.Search = function(query){
