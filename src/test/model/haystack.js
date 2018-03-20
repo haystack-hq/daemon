@@ -6,9 +6,12 @@ var chaiAsPromised = require("chai-as-promised");
 chai.use(chaiAsPromised);
 
 
+
 var Haystack = require("./../../../src/model/haystack");
 var LocalInterface = require("./../../../src/interface/local/local-interface");
 var base64 = require("base-64");
+var events = require('events');
+var Tasks = require("./../../../src/lib/tasks");
 
 
 
@@ -21,16 +24,14 @@ var test_data  = {
         name: "abc",
         status: Haystack.Statuses.running
     }],
-    haystack_file_encoded: base64.encode(JSON.stringify(test_haystack_file)),
-    build_encoded: base64.encode(JSON.stringify(test_build)),
     mode: Haystack.Mode.local,
     provider: "test-provider",
-    stack_file_location: "/Users/macmcclain/projects/",
+    stack_file_location: process.env.PWD + "/test/assets/haystack_file.json",
     status: Haystack.Statuses.impaired,
     health: Haystack.Health.healthy,
     created_by: "mac",
     do_mount: true,
-    terminated_on: new Date(),
+    terminated_on: Date.now(),
     haystack_file: test_haystack_file,
     build: test_build
 
@@ -114,6 +115,37 @@ describe('Haystack', function() {
         haystack.connect();
         haystack.disconnect();
         assert.isNull(haystack.interface);
+    });
+
+
+
+    it("removes a stack that has been terminated for x amount of seconds", function(done){
+        this.timeout(1500);
+
+
+        //remove all haystacks for a clean test
+        Haystack.RemoveAll();
+
+
+        var haystack = new Haystack(new events.EventEmitter(), test_data);
+        haystack.terminated_on = Date.now();
+        haystack.status = Haystack.Statuses.terminated;
+        haystack.save();
+
+
+
+
+
+
+        setTimeout(function () {
+            Haystack.CleanUpTerminated(1);
+            assert.equal(Haystack.Search().length, 0);
+            done();
+        }, 1300);
+
+
+
+
     });
 
 

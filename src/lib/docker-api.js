@@ -89,8 +89,6 @@ DockerApi.prototype.stopContainer = function(name){
 DockerApi.prototype.removeContainer = function(name){
     var self = this;
 
-    console.log("DockerApi.prototype.removeContainer");
-
     return new Promise(function(resolve, reject) {
         self.docker.delete('/containers/' + name, {json:true}, function(err, container) {
 

@@ -1,6 +1,7 @@
 var Haystack = require("./model/haystack");
 var DockerApi = require("./lib/docker-api");
 var DockerEvents = require('./lib/docker-events');
+var Tasks = require('./lib/tasks');
 var WebServer = require('./webserver');
 var events = require('events');
 
@@ -45,6 +46,12 @@ App.prototype.start = function(){
     //webserver + streams
     var webServer = new WebServer(this.event_bus);
     webServer.listen();
+
+
+
+    //tasks
+    var tasks = new Tasks();
+    tasks.start();
 
 
 }

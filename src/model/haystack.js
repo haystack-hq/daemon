@@ -6,7 +6,8 @@ var base64 = require("base-64");
 var findParentDir = require('find-parent-dir');
 var fs  = require('fs-extra');
 var path = require('path');
-
+var moment = require('moment');
+var homedir = require("homedir");
 
 
 
@@ -34,15 +35,7 @@ var Haystack = function(event_bus, data){
     /* get / find the stack file based on the path provided. */
     if(data && data.stack_file_location && this.mode == Haystack.Mode.local){
         this.stack_file_location = data.stack_file_location;
-
-        this.setHaystackFilePath();
-
-        console.log("this.stack_file_location", this.stack_file_location);
-
-        //get the contents from the path
         data.haystack_file = require(this.stack_file_location);
-
-        console.log("this.haystack_file", this.haystack_file);
     }
 
     //set the data if it was passed in to a new stack.
@@ -126,9 +119,9 @@ Haystack.findHaystackfileFromPath = function(path){
 Haystack.prototype.disconnect = function(){
 
     if(this.interface){
-
+        this.interface = null;
     }
-    this.interface = null;
+
 };
 
 
@@ -350,7 +343,9 @@ Haystack.prototype.sync = function(){
 
 }
 
-Haystack.prototype.setHaystackFilePath = function(){
+
+//todo: should this be reporposed?
+Haystack.prototype.findHaystackFilePath = function(){
     var haystackfilePath = null;
 
     var pathProvided = this.stack_file_location;
@@ -446,6 +441,35 @@ Haystack.FindOne = function(identifier){
 
 }
 
+Haystack.RemoveAll = function(){
+    //removes all stacks
+    db.stacks.remove();
+    var basePath = homedir() + "/.haystack/client-agent-db";
+    db.connect(basePath, ['stacks']); //todo: this is a hack and there should be a proper remove all stacks feature on DB.
+}
+
+
+/* clean up stacks that have been terminated more than x seconds */
+Haystack.CleanUpTerminated = function(seconds){
+    //find all the stacks.
+    var stacks = db.stacks.find({status : Haystack.Statuses.terminated});
+
+    //loop all terminated and see if seconds has lapsed.
+    stacks.forEach(function (stack) {
+
+
+        var a = new moment(stack.terminated_on);
+        var b = new moment(Date.now());
+
+        var laps = b.diff(a, 'seconds');
+
+        //delete when enough seconds have gone by.
+        if(laps >= seconds){
+            db.stacks.remove({identifier : stack.identifier}, false);
+        }
+
+    });
+}
 
 
 

@@ -10,13 +10,14 @@
 
   "services": {
     "web_1": {
-      "type": "docker.image",
-      "image": "hello-world"
-    },
-
-    "web_2": {
-      "type": "docker.build",
-      "src": "."
+      "type": "/Users/macmcclain/projects/haystack/haystack-service-packages/docker.container",
+      "image": "tutum/hello-world",
+      "ports": [
+        {
+          "container": "80",
+          "host": "4454"
+        }
+      ]
     }
   }
 }
