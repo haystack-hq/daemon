@@ -59,7 +59,7 @@ describe('local-build', function() {
         }
         catch (ex)
         {
-            assert.deepEqual(ex, new InvalidServicePackageError("Missing manifest.json for Service Package '" + path + "'"));
+            assert.deepEqual(ex, new InvalidServicePackageError("Missing manifest.json for Service Package at '" + path + "/manifest.json'"));
         }
 
     });

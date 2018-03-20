@@ -31,6 +31,7 @@ var Haystack = function(event_bus, data){
     this.haystack_file = null;
     this.build = null;
     this.terminated_on = null;
+    this.stack_file_location = null;
 
     /* get / find the stack file based on the path provided. */
     if(data && data.stack_file_location && this.mode == Haystack.Mode.local){
@@ -398,8 +399,6 @@ Haystack.prototype.save = function(){
 
     }
 
-
-    console.log('haystack-update', this.getStatusData());
 
     //docker-stack-change
     this.event_bus.emit('haystack-update',  this.getStatusData());

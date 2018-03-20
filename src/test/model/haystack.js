@@ -33,7 +33,7 @@ var test_data  = {
     do_mount: true,
     terminated_on: Date.now(),
     haystack_file: test_haystack_file,
-    build: test_build
+    build: null
 
 };
 
@@ -43,14 +43,15 @@ describe('Haystack', function() {
     this.timeout(2000);
 
 
+
+
+
     it("has the correctly empty init properties", function(){
         var haystack = new Haystack();
 
         assert.isNull(haystack._id);
         assert.isNull(haystack.identifier);
         assert.isNull(haystack.services);
-        assert.isNull(haystack.haystack_file_encoded);
-        assert.isNull(haystack.build_encoded);
         assert.equal(haystack.mode, Haystack.Mode.local);
         assert.isNull(haystack.provider);
         assert.isNull(haystack.stack_file_location);
@@ -69,15 +70,15 @@ describe('Haystack', function() {
 
 
     it("has the correctly populated init properties", function(){
-        var haystack = new Haystack(test_data);
+        var haystack = new Haystack(new events.EventEmitter(), test_data);
         assert.deepEqual(test_data, haystack.getData());
     });
 
 
     it("finds a matching haystack", function(){
-        var haystack = new Haystack(test_data);
+        var haystack = new Haystack(new events.EventEmitter(), test_data);
         haystack.save();
-        var haystack2 = new Haystack().load("test");
+        var haystack2 = new Haystack(new events.EventEmitter()).load("test");
 
         assert.equal(haystack.identifier, haystack2.identifier);
 
@@ -87,10 +88,10 @@ describe('Haystack', function() {
 
 
     it("throws an exception if no haystack found", function(){
-        var haystack = new Haystack(test_data);
+        var haystack = new Haystack(new events.EventEmitter(), test_data);
         haystack.save();
 
-        assert.throws(function () { new Haystack().load("test1") }, "Haystack 'test1' not found.");
+        assert.throws(function () { new Haystack(new events.EventEmitter()).load("test1") }, "Haystack 'test1' not found.");
 
         //clean up
         haystack.delete();
@@ -98,7 +99,7 @@ describe('Haystack', function() {
 
 
     it("connects to local interface", function(){
-        var haystack = new Haystack(test_data);
+        var haystack = new Haystack(new events.EventEmitter(), test_data);
 
         haystack.connect();
 
@@ -111,7 +112,7 @@ describe('Haystack', function() {
 
 
     it("disconnects from local interface", function(){
-        var haystack = new Haystack(test_data);
+        var haystack = new Haystack(new events.EventEmitter(), test_data);
         haystack.connect();
         haystack.disconnect();
         assert.isNull(haystack.interface);
