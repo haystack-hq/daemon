@@ -1,11 +1,11 @@
 
-function InvalidServicePackageError(message){
-    this.name = "InvalidServicePackageError";
+function InvalidServicePluginError(message){
+    this.name = "InvalidServicePluginError";
     this.message = (message || "");
 }
 
-InvalidServicePackageError.prototype = Error.prototype;
+InvalidServicePluginError.prototype = Error.prototype;
 
 
 
-module.exports = InvalidServicePackageError;
+module.exports = InvalidServicePluginError;

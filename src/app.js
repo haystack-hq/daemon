@@ -1,9 +1,12 @@
 var Haystack = require("./model/haystack");
 var DockerApi = require("./lib/docker-api");
 var DockerEvents = require('./lib/docker-events');
+var LocalBuild = require('./lib/build/local-build');
 var Tasks = require('./lib/tasks');
 var WebServer = require('./webserver');
 var events = require('events');
+var path = require('path');
+var fs = require('fs-extra');
 
 
 var App = function(){
@@ -52,6 +55,13 @@ App.prototype.start = function(){
     //tasks
     var tasks = new Tasks();
     tasks.start();
+
+
+
+    //todo: we will be replacing this with a service plugin repository. But for now.
+    var plugins_dir = LocalBuild.GetServicePackagePath();
+    fs.ensureDirSync(plugins_dir);
+    fs.copySync(path.resolve(__dirname) + "/tmp/docker.container", plugins_dir + "/docker.container/");
 
 
 }

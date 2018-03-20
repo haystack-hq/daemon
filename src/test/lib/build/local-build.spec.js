@@ -5,7 +5,7 @@ var assert = chai.assert;
 var chaiAsPromised = require("chai-as-promised");
 chai.use(chaiAsPromised);
 
-var InvalidServicePackageError = require("./../../../errors/invalid-service-package-error");
+var InvalidServicePluginError = require("./../../../errors/invalid-service-package-error");
 var Build = require("../../../lib/build/local-build");
 
 describe('local-build', function() {
@@ -29,7 +29,7 @@ describe('local-build', function() {
         }
         catch (ex)
         {
-            assert.deepEqual(ex, new InvalidServicePackageError("Service package 'some-non-service-plugin-that-does-not-exist' not found."));
+            assert.deepEqual(ex, new InvalidServicePluginError("Service package 'some-non-service-plugin-that-does-not-exist' not found."));
         }
 
 
@@ -59,7 +59,7 @@ describe('local-build', function() {
         }
         catch (ex)
         {
-            assert.deepEqual(ex, new InvalidServicePackageError("Missing manifest.json for Service Package at '" + path + "/manifest.json'"));
+            assert.deepEqual(ex, new InvalidServicePluginError("Missing manifest.json for Service Package at '" + path + "/manifest.json'"));
         }
 
     });

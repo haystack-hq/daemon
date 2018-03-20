@@ -1,7 +1,7 @@
 /* creates local builds from haystack file */
 var fs  = require('fs-extra');
 var homedir = require("homedir");
-var InvalidServicePackageError = require("./../../errors/invalid-service-package-error");
+var InvalidServicePluginError = require("./../../errors/invalid-service-package-error");
 
 var LocalBuild = function(identifier, haystack_file){
     this.identifier = identifier;
@@ -9,10 +9,15 @@ var LocalBuild = function(identifier, haystack_file){
 
 
     //init
-    this.service_packages_path = homedir() + "/.haystack/service-packages/";
-    fs.ensureDirSync(this.service_packages_path);
+    this.service_plugin_path = LocalBuild.GetServicePackagePath();
+    fs.ensureDirSync(this.service_plugin_path);
 
 
+
+}
+
+LocalBuild.GetServicePackagePath = function(){
+    return homedir() + "/.haystack/service-plugins/";
 }
 
 
@@ -111,13 +116,15 @@ LocalBuild.prototype.build = function () {
 LocalBuild.GetServicePackage = function (package_name) {
     var path = null;
 
+    var service_plugin_path = LocalBuild.GetServicePackagePath();
+
 
     //check to see if this is an absolute path.
     var pathAbsolute = fs.pathExistsSync(package_name);
 
 
     //check to see if this package is available locally.
-    var pathExisting = fs.pathExistsSync(this.service_packages_path + package_name);
+    var pathExisting = fs.pathExistsSync(service_plugin_path + "/" + package_name);
 
 
     if(pathAbsolute)
@@ -125,10 +132,10 @@ LocalBuild.GetServicePackage = function (package_name) {
         path = package_name;
     }
     else if(pathExisting){
-        path = this.service_packages_path + package_name;
+        path = service_plugin_path + package_name;
     }
     else{
-        throw new InvalidServicePackageError( "Service package '" + package_name + "' not found.");
+        throw new InvalidServicePluginError( "Service package '" + package_name + "' not found.");
     }
 
 
@@ -151,7 +158,7 @@ LocalBuild.GetServicePackageManifest = function (path, name) {
     var manifestFilePath = path + "/manifest.json";
 
     if(!fs.pathExistsSync(manifestFilePath)){
-        throw new InvalidServicePackageError("Missing manifest.json for Service Package at '" + manifestFilePath + "'");
+        throw new InvalidServicePluginError("Missing manifest.json for Service Package at '" + manifestFilePath + "'");
     }
 
     var manifest = require(manifestFilePath);
