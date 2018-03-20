@@ -26,7 +26,7 @@ var test_data  = {
     mode: Haystack.Mode.local,
     provider: "test-provider",
     stack_file_location: "/Users/macmcclain/projects/",
-    status: Haystack.Statuses.impared,
+    status: Haystack.Statuses.impaired,
     health: Haystack.Health.healthy,
     created_by: "mac",
     do_mount: true,

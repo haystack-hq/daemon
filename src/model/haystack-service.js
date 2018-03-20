@@ -28,7 +28,7 @@ HaystackService.prototype.getData = function(){
 HaystackService.Statuses = {
     pending: "pending",
     provisioning: "provisioning",
-    impared: "impared",
+    impaired: "impaired",
     running: "running",
     stopping: "stopping",
     stopped: "stopped",

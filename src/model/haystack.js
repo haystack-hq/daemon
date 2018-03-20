@@ -151,7 +151,7 @@ Haystack.prototype.terminate = function(){
     var bypass = true;
 
     //validate we are in a status that can be terminated.
-    if(bypass == true || this.status == Haystack.Statuses.provisioning || this.status == Haystack.Statuses.running || this.status == Haystack.Statuses.impared || this.status == Haystack.Statuses.stopped)
+    if(bypass == true || this.status == Haystack.Statuses.provisioning || this.status == Haystack.Statuses.running || this.status == Haystack.Statuses.impaired || this.status == Haystack.Statuses.stopped)
     {
         this.status = Haystack.Statuses.terminating;
         this.terminated_on = Date.now();
@@ -254,7 +254,7 @@ Haystack.prototype.normalizeStatus = function(){
     running: "running",
     stopping: "stopping",
     stopped: "stopped",
-    impared: "impared",
+    impaired: "impaired",
     terminating: "terminating",
     terminated: "terminated"
      */
@@ -300,8 +300,8 @@ Haystack.prototype.normalizeStatus = function(){
      */
 
     /*
-    impared
-    todo: figure out an impared stack. timeout? in provissioning too long? one stack
+    impaired
+    todo: figure out an impaired stack. timeout? in provissioning too long? one stack
      */
 
     /*
@@ -457,7 +457,7 @@ Haystack.Statuses = {
     running: "running",
     stopping: "stopping",
     stopped: "stopped",
-    impared: "impared",
+    impaired: "impaired",
     terminating: "terminating",
     terminated: "terminated"
 }
