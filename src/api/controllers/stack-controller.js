@@ -4,6 +4,7 @@ var router = express.Router();
 var bodyParser = require('body-parser');
 router.use(bodyParser.urlencoded({ extended: true }));
 router.use(bodyParser.json());
+var fs = require("fs-extra");
 
 
 
@@ -39,7 +40,6 @@ router.post('/search', function (req, res) {
         params.stack_file_location = Haystack.FindHaystackFilePath(params.stack_file_location)
     }
 
-    console.log(params);
 
     var haystacks = Haystack.Search(params);
     res.status(200).send(haystacks);
@@ -65,37 +65,73 @@ router.get('/:identifier', function (req, res) {
 
 /* create a new stack */
 router.post('/', function (req, res) {
-    var identifier = req.body.identifier;
+    var identifier = null;
 
 
-    //check to see if this stack exists.
-    var results = Haystack.Search({identifier: identifier});
+    try {
+        var params = req.body;
 
 
-    //remove and terminated cat be deleted.
-    results.forEach(function (hs) {
-        var stack = new Haystack(req.event_bus).load(identifier);
-        if(stack.status == Haystack.Statuses.terminated){
-            stack.delete();
+
+        //validate that the haystack file exists
+        if(!fs.pathExistsSync(params.stack_file_location)){
+            throw ("Haystackfile does not exists at '" + params.stack_file_location + "'.");
         }
-    });
 
-    //check again to see if we can proceed.
-    var results = Haystack.Search({identifier: identifier});
+        if(!params.identifier){
+            //generate an identifier.
+            params.identifier = Haystack.GenerateIdentifierFromPath(params.stack_file_location);
+        }
 
-    if(results.length == 0)
-    {
+
+        //check to see if this stack exists.
+        var results = Haystack.Search({identifier: params.identifier});
+
+
+        //remove and terminated cat be deleted.
+        results.forEach(function (hs) {
+            var stack = new Haystack(req.event_bus).load(params.identifier);
+            if(stack.status == Haystack.Statuses.terminated){
+                stack.delete();
+            }
+        });
+
+        //check again to see if we can proceed.
+        var results = Haystack.Search({identifier: params.identifier});
+        if(results.length > 0){
+            throw ("Cannot create stack. There is already a stack with the id '" + params.identifier + "'.");
+        }
+
+
+        //check to see if there is a stack with the path provided.
+        var results = Haystack.Search({stack_file_location: params.stack_file_location});
+        if(results.length > 0){
+            throw ("Cannot create stack. There is already a stack at path '" + params.stack_file_location + "'.");
+        }
+
+
+        //create the new stack
         var haystack = new Haystack(req.event_bus, req.body);
         haystack.save();
         haystack.connect();
         haystack.start();
 
         res.status(200).send(haystack.getData());
+
+
+
     }
-    else
-    {
-        res.status(401).send("There is already a stack with the id '" + identifier + "'.");
+    catch (ex){
+        res.status(401).send(ex);
     }
+
+
+
+
+
+
+
+
 
 
 });

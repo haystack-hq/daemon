@@ -368,13 +368,37 @@ Haystack.FindHaystackFilePath = function(path_provided){
         //todo: log?
     }
 
-
-
-
     return file ? file : null;
-
-
 }
+
+
+Haystack.GenerateIdentifierFromPath = function(path_provided){
+
+    var identifier = null;
+
+    try {
+
+
+        var stats = fs.statSync(path_provided);
+        if(stats.isFile()){
+            path_provided = path.dirname(path_provided)
+        }
+
+
+        //get the directory
+        identifier = path.basename(path_provided);
+
+    }
+    catch (ex){
+        throw (ex);
+    }
+
+    identifier = identifier.replace(/[^A-Z0-9]/ig, "-").replace(/(-)\1{1,}/g, '$1').replace(/-+$/, "");
+
+    return identifier;
+}
+
+
 
 
 Haystack.prototype.save = function(){
@@ -395,11 +419,8 @@ Haystack.prototype.save = function(){
 
     }
 
-
     //docker-stack-change
     this.event_bus.emit('haystack-update',  this.getStatusData());
-
-
 
     return this;
 

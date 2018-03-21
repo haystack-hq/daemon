@@ -4,6 +4,9 @@ var expect = chai.expect;
 var assert = chai.assert;
 var chaiAsPromised = require("chai-as-promised");
 chai.use(chaiAsPromised);
+var fs = require("fs-extra");
+var path = require("path");
+var homedir = require("homedir");
 
 
 
@@ -119,6 +122,19 @@ describe('Haystack', function() {
     });
 
 
+    it("should remove all special chars when creating a stack identifier from a folder.", function(){
+        var file_path = homedir() + "/tmp/path/with&**^%^#!@#$%^&*()_+?><.,more-stuff_on the end/Haystackfile.json";
+
+
+        fs.ensureFileSync(file_path);
+        var identifier = Haystack.GenerateIdentifierFromPath(file_path);
+        assert.equal(identifier, "with-more-stuff-on-the-end");
+
+        //clean up
+        fs.removeSync(homedir() + "/tmp/path/");
+    });
+
+
 
     it("removes a stack that has been terminated for x amount of seconds", function(done){
         this.timeout(1500);
@@ -134,17 +150,11 @@ describe('Haystack', function() {
         haystack.save();
 
 
-
-
-
-
         setTimeout(function () {
             Haystack.CleanUpTerminated(1);
             assert.equal(Haystack.Search().length, 0);
             done();
         }, 1300);
-
-
 
 
     });
