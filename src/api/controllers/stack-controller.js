@@ -164,7 +164,15 @@ router.delete('/:identifier', function (req, res) {
 });
 
 
+/* ssh cmd for service */
+router.post('/:identifier/ssh', function (req, res) {
+    var identifier = req.params.identifier;
+    var service = req.body.service;
 
+    res.status(200).send({
+        cmd: 'docker exec -it ' + identifier + '_' + service + ' /bin/sh'
+    })
+});
 
 
 
