@@ -10,9 +10,10 @@ var StackController = require('./api/controllers/stack-controller');
 
 
 
-var WebServer = function (event_bus) {
+var WebServer = function (port, event_bus) {
     var self = this;
     this.event_bus = event_bus;
+    this.port = port;
 
     expressApp.use('/stacks', function (req, res, next) {
         req.event_bus = self.event_bus;
@@ -23,7 +24,7 @@ var WebServer = function (event_bus) {
 
 
 WebServer.prototype.listen = function(){
-    var port = process.env.PORT || 3000;
+    var port = this.port;
     var server = expressApp.listen(port, function() {
         console.log('Haystack daemon listening on port ' + port);
     });
