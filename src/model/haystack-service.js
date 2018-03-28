@@ -33,7 +33,9 @@ HaystackService.Statuses = {
     stopping: "stopping",
     stopped: "stopped",
     terminating: "terminating",
-    terminated: "terminated"
+    terminated: "terminated",
 }
+
+
 
 module.exports = HaystackService;

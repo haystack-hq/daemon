@@ -1,25 +1,49 @@
 {
+  "variables": {
+      "mysql_username": "[mysql-username]",
+      "mysql_password": "vault[mysql-password]"
+    }
+  ,
   "services": {
-    "web_1": {
+    "php7.1": {
       "type": "docker.container",
-      "image": "tutum/hello-world",
+      "image": "php:7.1-apache",
+      "src": "/html/http/www",
       "ports": [
         {
           "container": "80",
-          "host": "4458"
+          "host": "80"
         }
       ]
     },
-
-    "web_2": {
+    "mysql": {
       "type": "docker.container",
-      "image": "tutum/hello-world",
+      "image": "mysql/mysql-server",
+      "db": {
+        "name": "laravel",
+        "username": "mysql_username",
+        "pw": "mysql_password"
+      },
       "ports": [
         {
-          "container": "80",
-          "host": "4459"
+          "container": "3306",
+          "host": "3306"
         }
       ]
     }
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+

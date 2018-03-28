@@ -2,6 +2,8 @@ var DockerStack = require("./docker/docker-stack");
 Haystack = require("../../model/haystack");
 HaystackService = require("../../model/haystack-service");
 var Build = require("./../../lib/build/local-build");
+var DockerStack = require("./../../interface/local/docker/docker-stack");
+var DockerServiceError = require("./../../errors/docker-service-error");
 
 
 var LocalInterface = function(haystack){
@@ -31,6 +33,17 @@ LocalInterface.prototype.start = function(){
 
     self.docker_stack.start().then(function () {
         self.sync();
+    }).catch(function (error_obj) {
+        //set the stack status to impaired
+        self.haystack.status = Haystack.Statuses.impaired;
+
+        //set the errored service to impaired.
+        var service = self.haystack.findService(error_obj.service_name);
+        service.error = new DockerServiceError( error_obj.err ).message;
+
+        //sync.
+        self.sync();
+
     });
 }
 
@@ -45,7 +58,18 @@ LocalInterface.prototype.stop = function(){
 
 LocalInterface.prototype.terminate = function(){
     var self = this;
+
+
+
+
+    //terminate the stack
     this.docker_stack.terminate().then(function () {
+        //set all the services to terminating.
+        self.haystack.services.forEach(function(service){
+            service.error = null;
+            service.status = HaystackService.Statuses.terminating;
+        });
+
         self.sync();
     });
 }
@@ -55,7 +79,7 @@ LocalInterface.prototype.sync = function(){
     var self = this;
 
     this.docker_stack.sync().then(function(data){
-        var normalized_services = LocalInterface.normalizeServices(data.services);
+        var normalized_services = self.normalizeServices(data.services);
         self.haystack.normalizeServices(normalized_services);
         self.haystack.normalizeStatus();
         //save the stack;
@@ -68,20 +92,37 @@ LocalInterface.prototype.sync = function(){
 
 }
 
-LocalInterface.normalizeServices = function(services)
+LocalInterface.prototype.normalizeServices = function(docker_stack_services)
 {
+    var self = this;
 
-    services.forEach(function(service){
+    var services = [];
+
+    docker_stack_services.forEach(function(docker_stack_service){
         //normalize status.
 
-        service.container_status = service.status;
+        //find the service.
+        service = self.haystack.findService(docker_stack_service.name);
 
+        service.container_status = docker_stack_service.status;
+
+
+        console.log("service.sync", service.status, docker_stack_service.status);
+
+        /*
+        impared:
+        service.error != null
+         */
+        if(service.error){
+            service.status = HaystackService.Statuses.impaired;
+        }
 
         /*
         terminated:
         status == dead or service.exists == false
          */
-        if(service.status == HaystackService.Statuses.dead || !service.exists){
+        else if(service.container_status == DockerStack.ContainerStatus.dead || service.container_status == DockerStack.ContainerStatus.exited || !service.exists ){
+            console.log("i got here");
             service.status = HaystackService.Statuses.terminated;
         }
 
@@ -92,7 +133,7 @@ LocalInterface.normalizeServices = function(services)
         provisioned == false
         healthy == false
          */
-        else if(service.status != HaystackService.Statuses.dead && !service.exists && !service.is_running && !service.is_provisioned && !service.is_healthy){
+        else if(service.container_status != DockerStack.ContainerStatus.dead && !service.exists && !service.is_running && !service.is_provisioned && !service.is_healthy){
             service.status = HaystackService.Statuses.pending;
         }
 
@@ -155,6 +196,8 @@ LocalInterface.normalizeServices = function(services)
             service.status = HaystackService.Statuses.terminating;
         }
 
+
+        services.push(service);
 
 
 

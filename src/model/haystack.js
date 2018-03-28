@@ -243,7 +243,11 @@ Haystack.prototype.normalizeServices = function(services_to_merge){
 }
 
 
+
+
 Haystack.prototype.normalizeStatus = function(){
+    var self = this;
+
     /*
     pending: "pending",
     starting: "starting",
@@ -314,7 +318,7 @@ Haystack.prototype.normalizeStatus = function(){
     if(this.status == Haystack.Statuses.terminating){
         if (this.services.filter(function(s) { return s.status === HaystackService.Statuses.terminated; }).length > 0) {
             this.status = Haystack.Statuses.terminated;
-            this.interface = null;
+            this.disconnect();
         }
     }
 

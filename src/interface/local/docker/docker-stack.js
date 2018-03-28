@@ -82,30 +82,6 @@ DockerStack.prototype.start = function () {
 
     });
 
-
-
-
-        /*
-        var pCreate = self.createContainers();
-        var pStart = self.startContainers();
-
-
-        Promise.mapSeries([pCreate, pStart], function(result) {
-            resolve(true);
-        });
-        */
-
-        /*
-        Promise.mapSeries([pCreate, pStart]).then(function(results) {
-            resolve(true);
-        }).catch(function (err) {
-            reject(err);
-        });
-        */
-
-
-
-
 }
 
 
@@ -140,35 +116,7 @@ DockerStack.prototype.createContainers = function () {
             reject(err);
         });
     });
-    /*
-    console.log("creating containers.");
 
-    return new Promise(function(resolve, reject) {
-        //start all of the containers
-        var promises = [];
-
-        self.containers.forEach(function(container){
-            var container_name = self.identifier + "_" + container.name
-            promises.push(DockerStack.CreateContainer(self.identifier, container_name, container));
-        });
-
-
-        Promise.mapSeries(promises, function(result) {
-            resolve(true);
-        });
-
-
-        Promise.mapSeries(promises).then(function(res) {
-            console.log("creating containers done.");
-            resolve(true);
-        }).catch(function (err) {
-            console.log("creating containers err.", err);
-            reject(err);
-        })
-
-
-    });
-    */
 
 }
 
@@ -180,50 +128,17 @@ DockerStack.prototype.startContainers = function () {
     return new Promise(function(resolve, reject) {
         Promise.mapSeries(self.containers, function(container){
             var container_name = self.identifier + "_" + container.name;
-            return DockerStack.StartContainer(container_name)
+            return DockerStack.StartContainer(container.name, container_name)
         }).then(function(res) {
             resolve(true);
-        }).catch(function (err) {
-            console.log(err);
-            reject(err);
+        }).catch(function (error_obj) {
+            console.log("DockerStack.prototype.startContainers", error_obj.container_name,  error_obj.err);
+            reject(error_obj);
         });
     });
 
 
 
-
-    /*
-
-    console.log("starting containers done.");
-
-    return new Promise(function(resolve, reject) {
-        //start all of the containers
-        var promises = [];
-
-        self.containers.forEach(function(container){
-            var container_name = self.identifier + "_" + container.name
-            promises.push(DockerStack.StartContainer(container_name));
-        });
-
-
-        Promise.mapSeries(promises, function(result) {
-            resolve(true);
-        }).then(function(){
-            console.log("XXXXXXXXXXXX");
-        });
-
-
-        Promise.mapSeries(promises).then(function(res) {
-            console.log("starting containers done.");
-            resolve(true);
-        }).catch(function (err) {
-            console.log("starting containers err.", err);
-            reject(err);
-        })
-
-
-    });
-    */
 
 }
 
@@ -277,7 +192,7 @@ DockerStack.CreateContainer = function (identifier, container_name, container) {
 
 
 
-DockerStack.StartContainer = function (container_name) {
+DockerStack.StartContainer = function (service_name, container_name) {
     var docker = new Docker();
 
     return new Promise(function(resolve, reject) {
@@ -286,7 +201,8 @@ DockerStack.StartContainer = function (container_name) {
             resolve(container_data);
 
         }).catch(function (err) {
-            reject(err);
+            console.log("err.message", err.message);
+            reject({service_name: service_name, container_name: container_name, err: err.message});
         });
 
     });
