@@ -18,7 +18,7 @@ var Tasks = require("./../../../src/lib/tasks");
 
 
 
-var test_build = require("../assets/build.json");
+
 var test_haystack_file = require("../assets/haystack_file.json");
 var test_data  = {
     _id: null,
@@ -29,7 +29,7 @@ var test_data  = {
     }],
     mode: Haystack.Mode.local,
     provider: "test-provider",
-    stack_file_location: process.env.PWD + "/test/assets/haystack_file.json",
+    stack_file_location: path.join( process.env.PWD , "/test/assets/haystacks/valid-haystack.json" ),
     status: Haystack.Statuses.impaired,
     health: Haystack.Health.healthy,
     created_by: "mac",
@@ -44,10 +44,6 @@ var test_data  = {
 describe('Haystack', function() {
 
     this.timeout(2000);
-
-
-
-
 
     it("has the correctly empty init properties", function(){
         var haystack = new Haystack();
@@ -64,9 +60,7 @@ describe('Haystack', function() {
         assert.isNull(haystack.created_by);
         assert.equal(haystack.do_mount, false);
         assert.isNull(haystack.haystack_file);
-        assert.isNull(haystack.build);
         assert.isNull(haystack.terminated_on);
-
 
     });
 
@@ -101,26 +95,6 @@ describe('Haystack', function() {
     });
 
 
-    it("connects to local interface", function(){
-        var haystack = new Haystack(new events.EventEmitter(), test_data);
-
-        haystack.connect();
-
-        assert.instanceOf(haystack.interface, LocalInterface);
-
-        haystack.disconnect();
-
-    });
-
-
-
-    it("disconnects from local interface", function(){
-        var haystack = new Haystack(new events.EventEmitter(), test_data);
-        haystack.connect();
-        haystack.disconnect();
-        assert.isNull(haystack.interface);
-    });
-
 
     it("should remove all special chars when creating a stack identifier from a folder.", function(){
         var file_path = homedir() + "/tmp/path/with&**^%^#!@#$%^&*()_+?><.,more-stuff_on the end/Haystackfile.json";
@@ -138,7 +112,6 @@ describe('Haystack', function() {
 
     it("removes a stack that has been terminated for x amount of seconds", function(done){
         this.timeout(1500);
-
 
         //remove all haystacks for a clean test
         Haystack.RemoveAll();
@@ -159,6 +132,11 @@ describe('Haystack', function() {
 
     });
 
+
+
+    it("should run init against a stack", function(done) {
+        assert.equal(true, false);
+    });
 
 
 

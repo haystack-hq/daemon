@@ -1,0 +1,23 @@
+{
+  "services": {
+    "web_1": {
+      "plugin": "/Users/macmcclain/projects/haystack/haystack-service-packages/hello-world",
+      "provider": {
+        "local": "test_provider"
+      },
+      "http_port": "8805"
+    },
+    "web_2": {
+      "plugin": "/Users/macmcclain/projects/haystack/haystack-service-packages/hello-world",
+      "provider": "test_provider",
+      "http_port": "8806"
+    },
+    "web_3": {
+      "plugin": "/Users/macmcclain/projects/haystack/haystack-service-packages/hello-world",
+      "http_port": "8807"
+    }
+  }
+}
+
+
+
