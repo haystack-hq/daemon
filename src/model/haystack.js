@@ -1,3 +1,4 @@
+"use strict";
 
 var db = require('./../db/db-conn');
 var LocalInterface = require('./../interface/local/local-interface');
@@ -7,18 +8,14 @@ var fs  = require('fs-extra');
 var path = require('path');
 var moment = require('moment');
 var homedir = require("homedir");
+var Promise = require('bluebird');
 
 
 var findup = require('findup-sync');
 
 
-
-
-
-
 var Haystack = function(event_bus, data){
     this.event_bus = event_bus;
-
 
     //set defaults.
     this._id = null;
@@ -28,11 +25,8 @@ var Haystack = function(event_bus, data){
     this.provider = null;
     this.status = Haystack.Statuses.pending;
     this.health = Haystack.Health.unhealthy;
-    this.interface = null;
     this.created_by = null;
-    this.do_mount = false;
     this.haystack_file = null;
-    this.build = null;
     this.terminated_on = null;
     this.stack_file_location = null;
 
@@ -47,9 +41,7 @@ var Haystack = function(event_bus, data){
         this._setData(data);
     }
 
-
     return this;
-
 }
 
 
@@ -65,23 +57,20 @@ Haystack.prototype._setData = function(data){
     this.status = data.status ? data.status : this.status;
     this.health = data.health ? data.health : this.health;
     this.created_by = data.created_by ? data.created_by : this.created_by;
-    this.do_mount = data.do_mount ? data.do_mount : this.do_mount;
     this.terminated_on = data.terminated_on ? data.terminated_on : this.terminated_on;
     this.haystack_file = data.haystack_file ? data.haystack_file : null;
 
-    //services
-    this.services = data.services ? data.services : this.services;
 
-    if(data.services){
-        this.services = data.services
-    }
-    else if(this.services == null && this.haystack_file){
-        this.services = [];
-        for( key in this.haystack_file.services)
-        {
-            this.services.push(new HaystackService(key));
-        }
-    }
+    //todo: resort services by dependencies.
+
+    this.services = [];
+    Object.keys(this.haystack_file.services).forEach((key) => {
+        var service_info = this.haystack_file.services[key];
+        var haystack_service = new HaystackService(this, HaystackService.Modes.local, key, service_info);
+        this.services.push(haystack_service);
+    });
+
+
 
 
     return this;
@@ -97,72 +86,115 @@ Haystack.prototype.load = function(identifier){
     }
     else
     {
-        throw("Haystack '" + identifier + "' not found.");
+        throw new Error("Haystack [" + identifier + "] not found.");
     }
 
     return this;
 };
 
-Haystack.prototype.connect = function(){
 
-    //get interface .
-    if(this.mode == Haystack.Mode.local){
-        this.interface = new LocalInterface(this);
-    }
-    else
-    {
-        throw ("Invalid mode '" + this.mode + "'");
-    }
-};
 
 
 Haystack.findHaystackfileFromPath = function(path){
 
 }
 
-Haystack.prototype.disconnect = function(){
 
-    if(this.interface){
-        this.interface = null;
-    }
 
-};
 
+Haystack.prototype.init = function(){
+
+    this.updateStatus(Haystack.Statuses.provisioning);
+
+    return new Promise((resolve, reject)  => {
+        //all promises are complete.
+        Promise.mapSeries(this.services, function(service){
+            return service.init();
+        }).then((res) => {
+            this.updateStatus(Haystack.Statuses.provisioned);
+            resolve(res);
+        }).catch((err) => {
+            reject(err);
+        });
+    });
+}
 
 
 Haystack.prototype.start = function(){
+
     this.updateStatus(Haystack.Statuses.starting);
-    this.interface.start();
+
+    return new Promise((resolve, reject)  => {
+        //all promises are complete.
+        Promise.mapSeries(this.services, function(service){
+            return service.start();
+        }).then((res) => {
+            this.updateStatus(Haystack.Statuses.running);
+            resolve(res);
+        }).catch((err) =>{
+            reject(err);
+        });
+    });
 }
 
 
 Haystack.prototype.stop = function(){
-    this.interface.stop();
+
+    this.updateStatus(Haystack.Statuses.stopping);
+
+    return new Promise((resolve, reject)  => {
+        //all promises are complete.
+        Promise.mapSeries(this.services, function(service){
+            return service.stop();
+        }).then((res) => {
+            this.updateStatus(Haystack.Statuses.stopped);
+            resolve(res);
+        }).catch((err) => {
+            reject(err);
+        });
+    });
 }
 
 
 Haystack.prototype.terminate = function(){
 
-    console.log("this.status", this.status);
+    //validate that we can terminate.
+    this.updateStatus(Haystack.Statuses.terminating);
 
-    var bypass = true;
+    return new Promise((resolve, reject)  => {
+        //all promises are complete.
+        Promise.mapSeries(this.services, (service) => {
+            return service.terminate();
+        }).then((res) => {
 
-    //validate we are in a status that can be terminated.
-    if(bypass == true || this.status == Haystack.Statuses.provisioning || this.status == Haystack.Statuses.running || this.status == Haystack.Statuses.impaired || this.status == Haystack.Statuses.stopped)
-    {
-        this.status = Haystack.Statuses.terminating;
-        this.terminated_on = Date.now();
-        this.save();
+            this.updateStatus(Haystack.Statuses.terminated);
+            this.terminated_on = Date.now();
+            this.save();
 
-        this.interface.terminate();
+            resolve(res);
+        }).catch( (err) => {
+            reject(err);
+        });
+    });
 
-    }
-    else {
-        throw ("Can not terminate when in status '" + this.status + "'");
-    }
+}
 
 
+Haystack.prototype.inspect = function(){
 
+    console.log("services", this.services);
+
+    return new Promise((resolve, reject)  => {
+        //all promises are complete.
+        Promise.mapSeries(this.services, function(service){
+            return service.inspect();
+        }).then((res) => {
+            this.save();
+            resolve(res);
+        }).catch((err) => {
+            reject(err);
+        });
+    });
 }
 
 
@@ -171,23 +203,39 @@ Haystack.prototype.delete = function(){
 }
 
 
+Haystack.prototype.getServicesData = function(){
+    var data = [];
+    this.services.forEach((service) => {
+        var d = {
+            status: service.status,
+            is_healthy: service.is_healthy,
+            error: service.error
+        }
+
+
+
+
+        data.push(d);
+    });
+
+    return data;
+}
+
 Haystack.prototype.getData = function(){
 
     //create a data object to be saved.
     var data = {
         _id: this._id,
         identifier: this.identifier,
-        services: this.services,
+        services: this.getServicesData(),
         mode: this.mode,
         provider: this.provider,
         stack_file_location: this.stack_file_location,
         status: this.status,
         health: this.health,
         created_by: this.created_by,
-        do_mount: this.do_mount,
         terminated_on: this.terminated_on,
-        haystack_file: this.haystack_file,
-        build: this.build
+        haystack_file: this.haystack_file
     }
 
     return data;
@@ -199,7 +247,7 @@ Haystack.prototype.getStatusData = function(){
     //create a data object to be saved.
     var data = {
         identifier: this.identifier,
-        services: this.services,
+        services: this.getServicesData(),
         status: this.status,
         health: this.health,
         terminated_on: this.terminated_on
@@ -209,6 +257,11 @@ Haystack.prototype.getStatusData = function(){
 }
 
 Haystack.prototype.updateStatus = function(status){
+
+    if(Haystack.Statuses[status] == undefined){
+        throw new Error("The status [" + status + "] is not a valid haystack status.");
+    }
+
     this.status = status;
     this.save();
 }
@@ -243,90 +296,6 @@ Haystack.prototype.normalizeServices = function(services_to_merge){
 }
 
 
-
-
-Haystack.prototype.normalizeStatus = function(){
-    var self = this;
-
-    /*
-    pending: "pending",
-    starting: "starting",
-    provisioning: "provisioning",
-    running: "running",
-    stopping: "stopping",
-    stopped: "stopped",
-    impaired: "impaired",
-    terminating: "terminating",
-    terminated: "terminated"
-     */
-
-
-
-    /*
-    pending:
-    all services are pending status.
-     */
-
-    /*
-    starting
-    Note: triggered by event.
-     */
-
-    /*
-    provisioning:
-    status == starting +
-    one or more services in provisioning status
-     */
-    if(this.status == Haystack.Statuses.starting){
-        if (this.services.filter(function(s) { return s.status === HaystackService.Statuses.provisioning; }).length > 0) {
-            this.status = Haystack.Statuses.provisioning;
-        }
-    }
-
-    /*
-    running:
-    status == starting || provisioning +
-    all services are in running state.
-     */
-
-    /*
-    stopping
-    Note: triggered by event
-     */
-
-    /*
-    stopped:
-    status == stopping
-    all services are stopped
-     */
-
-    /*
-    impaired
-    todo: figure out an impaired stack. timeout? in provissioning too long? one stack
-     */
-
-    /*
-    terminating
-    Note: triggered by event
-     */
-
-    /*
-    terminated
-    status == terminating
-    all services are terminated.
-     */
-    if(this.status == Haystack.Statuses.terminating){
-        if (this.services.filter(function(s) { return s.status === HaystackService.Statuses.terminated; }).length > 0) {
-            this.status = Haystack.Statuses.terminated;
-            this.disconnect();
-        }
-    }
-
-
-}
-
-
-
 Haystack.prototype.findService = function(name){
     var service = null;
 
@@ -337,18 +306,15 @@ Haystack.prototype.findService = function(name){
             service = this.services[i];
             break;
         }
-
     }
 
     return service;
 }
 
-Haystack.prototype.sync = function(){
 
-    this.connect();
-    this.interface.sync();
-    this.disconnect();
 
+Haystack.prototype.canBeRemoved = function(){
+    return stack.status == Haystack.Statuses.terminated;
 }
 
 
@@ -371,6 +337,7 @@ Haystack.FindHaystackFilePath = function(path_provided){
         //nothing to do.
         //todo: log?
     }
+
 
     return file ? file : null;
 }
@@ -408,6 +375,8 @@ Haystack.GenerateIdentifierFromPath = function(path_provided){
 Haystack.prototype.save = function(){
 
     var data = this.getData();
+
+
 
     /* save new or existing stacks */
     if(this._id){

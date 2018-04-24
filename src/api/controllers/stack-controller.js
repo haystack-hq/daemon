@@ -8,10 +8,6 @@ var fs = require("fs-extra");
 
 
 
-
-
-
-
 Haystack = require("../../model/haystack");
 
 /* get all stacks */
@@ -70,17 +66,21 @@ router.post('/', function (req, res) {
 
     try {
         var params = req.body;
-
+        var path = params.stack_file_location;
 
 
         //validate that the haystack file exists
-        if(!fs.pathExistsSync(params.stack_file_location)){
-            throw ("Haystackfile does not exists at '" + params.stack_file_location + "'.");
+        if(!Haystack.FindHaystackFilePath(params.stack_file_location)){
+            throw ("Haystackfile does not exists at '" + path + "'.");
+        }
+        else
+        {
+            params.stack_file_location = Haystack.FindHaystackFilePath(params.stack_file_location);
         }
 
         if(!params.identifier){
             //generate an identifier.
-            params.identifier = Haystack.GenerateIdentifierFromPath(params.stack_file_location);
+            params.identifier = Haystack.GenerateIdentifierFromPath(path);
         }
 
 
@@ -91,7 +91,7 @@ router.post('/', function (req, res) {
         //remove and terminated cat be deleted.
         results.forEach(function (hs) {
             var stack = new Haystack(req.event_bus).load(params.identifier);
-            if(stack.status == Haystack.Statuses.terminated){
+            if(stack.canBeRemoved()){
                 stack.delete();
             }
         });
@@ -104,16 +104,15 @@ router.post('/', function (req, res) {
 
 
         //check to see if there is a stack with the path provided.
-        var results = Haystack.Search({stack_file_location: params.stack_file_location});
+        var results = Haystack.Search({stack_file_location: path});
         if(results.length > 0){
             throw ("Cannot create stack. There is already a stack at path '" + params.stack_file_location + "'.");
         }
 
 
         //create the new stack
-        var haystack = new Haystack(req.event_bus, req.body);
+        var haystack = new Haystack(req.event_bus, params);
         haystack.save();
-        haystack.connect();
         haystack.start();
 
         res.status(200).send(haystack.getData());
@@ -122,6 +121,7 @@ router.post('/', function (req, res) {
 
     }
     catch (ex){
+        console.log("bla", ex);
         res.status(401).send(ex);
     }
 

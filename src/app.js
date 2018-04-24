@@ -1,7 +1,5 @@
 var Haystack = require("./model/haystack");
 var DockerApi = require("./lib/docker-api");
-var DockerEvents = require('./lib/docker-events');
-var LocalBuild = require('./lib/build/local-build');
 var Tasks = require('./lib/tasks');
 var WebServer = require('./webserver');
 var events = require('events');
@@ -9,6 +7,7 @@ var path = require('path');
 var fs = require('fs-extra');
 var process = require('process');
 var fp = require("find-free-port");
+var ServicePluginManager = require("./service-plugin/service-plugin-manager");
 
 
 var App = function(){
@@ -29,29 +28,15 @@ App.prototype.start = function(){
         console.log(self.config.agent_port);
 
 
-        //listen for docker events.
-        self.docker_events = new DockerEvents({ docker: self.docker  });
-        self.docker_events.onContainerChange = function(status, data){
-            //find stack and sync it.
-            var identifier = data.Actor.Attributes["com.haystack.identifier"];
-            var haystack = new Haystack(self.event_bus).load(identifier);
-
-
-
-            if(haystack){
-                haystack.sync();
-            }
-        };
-        self.docker_events.start();
-
-
 
         //load stacks from db on startup.
         var haystacks = Haystack.Search();
+
         haystacks.forEach(function (haystack_data) {
             var haystack = new Haystack(self.event_bus).load(haystack_data.identifier);
             if(haystack){
-                haystack.sync();
+                console.log("haystack.identifier", haystack.identifier);
+                haystack.inspect();
             }
         });
 
@@ -69,9 +54,9 @@ App.prototype.start = function(){
 
 
         //todo: we will be replacing this with a service plugin repository. But for now.
-        var plugins_dir = LocalBuild.GetServicePackagePath();
+        var plugins_dir = ServicePluginManager.GetPluginDirectory();
         fs.ensureDirSync(plugins_dir);
-        fs.copySync(path.resolve(__dirname) + "/tmp/docker.container", plugins_dir + "/docker.container/");
+        fs.copySync(path.join(__dirname,  "/tmp/helloworld"), path.join(plugins_dir, "helloworld") );
     });
 
 

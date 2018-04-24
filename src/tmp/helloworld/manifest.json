@@ -1,0 +1,23 @@
+{
+  "name": "hello-world",
+  "version": "0.1",
+
+  "providers": {
+    "test_provider": "provider.js"
+  },
+  "default_provider": "test_provider",
+
+  "resource_dir": "./resources",
+
+  "properties": [
+    {
+      "label": "src",
+      "type": "path",
+      "required": false
+    }
+  ]
+}
+
+
+
+

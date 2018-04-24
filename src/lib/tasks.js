@@ -16,6 +16,4 @@ Tasks.prototype.start = function(){
 
 }
 
-
-
 module.exports = Tasks;
