@@ -1,3 +1,5 @@
+"use strict";
+
 var Haystack = require("./model/haystack");
 var DockerApi = require("./lib/docker-api");
 var Tasks = require('./lib/tasks');
@@ -36,7 +38,12 @@ App.prototype.start = function(){
             var haystack = new Haystack(self.event_bus).load(haystack_data.identifier);
             if(haystack){
                 console.log("haystack.identifier", haystack.identifier);
-                haystack.inspect();
+                haystack.init().then(function(result) {
+
+                }).catch(function(err){
+                    console.log("error starting up",  err);
+                    //todo: get this error into the haystack entry.
+                });
             }
         });
 
@@ -50,6 +57,8 @@ App.prototype.start = function(){
         //tasks
         var tasks = new Tasks();
         tasks.start();
+
+
 
 
 

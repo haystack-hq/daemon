@@ -16,10 +16,27 @@ var HaystackService = function(stack, mode, service_name, service_info){
     this.mode = mode;
     this.service_info = service_info;
     this.updateStatus(HaystackService.Statuses.pending);
-    this.is_healthy= false;
+    this._is_healthy= false;
     this.plugin = null;
     this.plugin_service_provider = null;
     this.error = null;
+
+
+
+
+
+    //health status
+    Logger.log('debug', 'Injected is_healthy === false into the provider [' + this.id  + ']');
+    Object.defineProperty(this, 'is_healthy', {
+        set: function(y) {
+            this._is_healthy = y;
+            this.refresh_service(this);
+        },
+        get: function() {
+            return this._is_healthy;
+        }
+    });
+
 
     try
     {
@@ -29,6 +46,20 @@ var HaystackService = function(stack, mode, service_name, service_info){
     {
         throw(ex);
     }
+
+
+}
+
+HaystackService.prototype.refresh_service = (service) => {
+
+    Logger.log('info', "Refreshing service [" + service.service_name + "] ");
+
+    //update the stack
+    service.inspect().then((res) => {
+        service.stack.refresh();
+    }).catch((e) => {
+        //note: inspect errors are handled at the inspect level.
+    });
 
 
 }
@@ -63,7 +94,7 @@ HaystackService.prototype.load = function(){
 
         //load the provider.
         this.provider = this.plugin.getProvider(this.service_info.provider, this.mode);
-        this.service_plugin_provider = new ServicePluginProvider(this.plugin.id, this.provider.id, this.provider, this.service_info);
+        this.service_plugin_provider = new ServicePluginProvider(this, this.plugin.id, this.provider.id, this.provider);
     }
     catch(ex)
     {
@@ -185,8 +216,10 @@ HaystackService.prototype.inspect = function(){
                 }
                 catch(ex){
                     var statuses_as_list = Object.keys(HaystackService.Statuses).map(function(k){return HaystackService.Statuses[k]}).join(",");
-                    this.updateStatus(HaystackService.Statuses.impaired, "The service plugin returned an invalid status of [" + result.status + "]. Valid service status options are [" + statuses_as_list + "]")
+                    var msg = "The service plugin returned an invalid status of [" + result.status + "]. Valid service status options are [" + statuses_as_list + "]";
+                    this.updateStatus(HaystackService.Statuses.impaired, msg)
                     Logger.log('debug', "Action [Inspect] error on [" + this.service_name + "] returned an invalid status", {status: result.status});
+                    reject(ex);
                 }
 
 

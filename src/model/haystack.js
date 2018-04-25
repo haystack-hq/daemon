@@ -1,4 +1,4 @@
-"use strict";
+
 
 var db = require('./../db/db-conn');
 var LocalInterface = require('./../interface/local/local-interface');
@@ -9,6 +9,7 @@ var path = require('path');
 var moment = require('moment');
 var homedir = require("homedir");
 var Promise = require('bluebird');
+var Logger = require("../../src/lib/logger");
 
 
 var findup = require('findup-sync');
@@ -108,10 +109,14 @@ Haystack.prototype.init = function(){
 
     return new Promise((resolve, reject)  => {
         //all promises are complete.
-        Promise.mapSeries(this.services, function(service){
+        Promise.mapSeries(this.services, (service) => {
             return service.init();
         }).then((res) => {
+
             this.updateStatus(Haystack.Statuses.provisioned);
+            return this.inspect();
+        }).then((res) => {
+
             resolve(res);
         }).catch((err) => {
             reject(err);
@@ -181,8 +186,6 @@ Haystack.prototype.terminate = function(){
 
 
 Haystack.prototype.inspect = function(){
-
-    console.log("services", this.services);
 
     return new Promise((resolve, reject)  => {
         //all promises are complete.
@@ -258,6 +261,7 @@ Haystack.prototype.getStatusData = function(){
 
 Haystack.prototype.updateStatus = function(status){
 
+
     if(Haystack.Statuses[status] == undefined){
         throw new Error("The status [" + status + "] is not a valid haystack status.");
     }
@@ -266,34 +270,6 @@ Haystack.prototype.updateStatus = function(status){
     this.save();
 }
 
-Haystack.prototype.normalizeServices = function(services_to_merge){
-    var self = this;
-
-
-    //loop all the new_data services.
-    services_to_merge.forEach(function (s) {
-
-        //find in the current services by name
-        var service = self.findService(s.name);
-
-        service.status = s.status;
-        service.exists = s.exists;
-        service.is_running = s.is_running;
-        service.is_healthy = s.is_healthy;
-
-
-        //once the services is healthy one time.. then provisioned flag is set.
-        if(service.is_running && service.is_healthy)
-        {
-            service.is_provisioned = true;
-        }
-
-    });
-
-
-    //console.log(this.services);
-
-}
 
 
 Haystack.prototype.findService = function(name){
@@ -370,12 +346,14 @@ Haystack.GenerateIdentifierFromPath = function(path_provided){
 }
 
 
-
+Haystack.prototype.refresh = function(){
+    Logger.log('debug', 'Refreshing stack [' + this.identifier  + ']');
+    this.save();
+}
 
 Haystack.prototype.save = function(){
 
     var data = this.getData();
-
 
 
     /* save new or existing stacks */
@@ -467,6 +445,7 @@ Haystack.Statuses = {
     pending: "pending",
     starting: "starting",
     provisioning: "provisioning",
+    provisioned: "provisioned",
     running: "running",
     stopping: "stopping",
     stopped: "stopped",

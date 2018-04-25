@@ -4,7 +4,7 @@ var Logger = require("../../src/lib/logger");
 var ServicePluginLib = require("../../src/service-plugin/service-plugin-lib");
 var Promise = require('bluebird');
 
-var ServicePluginProvider = function(plugin_id, provider_id, provider, service_info){
+var ServicePluginProvider = function(service, plugin_id, provider_id, provider){
     Logger.log('debug', 'Init ServicePluginProvider [' + plugin_id + '] of ['+ provider_id + ']');
 
     this.errors = [];
@@ -17,10 +17,9 @@ var ServicePluginProvider = function(plugin_id, provider_id, provider, service_i
 
     //inject helpers.
     this.provider = provider.provider_class;
-    this.service_info = service_info;
-    this.inject();
+    this.service = service;
     this.provider_instance = new this.provider();
-    this.provider_instance.inject_haystack();
+    this.inject();
 
 
     //add required actions.
@@ -29,7 +28,7 @@ var ServicePluginProvider = function(plugin_id, provider_id, provider, service_i
     //add optional actions.
     this.implement_provider_optional_actions();
 
-    //add in
+    
 
 }
 
@@ -41,11 +40,15 @@ ServicePluginProvider.prototype.implement_provider_required_actions = function()
     ServicePluginProvider.RequiredActions.forEach((method) => {
         this[method] = function(){
             return new Promise((resolve, reject)  => {
+
                 self.provider_instance[method](function(result){
                     resolve(result);
                 }, function(err){
                     reject(err);
-                })
+                });
+
+
+
             });
         }
     });
@@ -94,34 +97,29 @@ This allows us to provide some common libraries that will make it easier on the 
  */
 ServicePluginProvider.prototype.inject = function(){
 
-    this.provider.prototype.haystack = { lib: {} };
+    /* libs */
+    this.provider_instance.haystack = { lib: {} };
+
+    ServicePluginLib.GetLibs().forEach((lib) => {
+        Logger.log('debug', 'Injected haystack.lib.' + lib.name + ' to the provider [' + this.id  + ']');
+        var D = require(lib.path);
+        this.provider_instance.haystack.lib[lib.name] = new D();
+    });
+
+
+    /* service */
+    this.provider_instance.haystack.service = this.service;
+    this.provider_instance.haystack.update = () => {
+        this.provider_instance.haystack.service.refresh_service(this.service);
+    };
 
 
 
-    //inject
-    this.provider.prototype.inject_haystack = (provider) => {
-        ServicePluginLib.GetLibs().forEach((lib) => {
-            Logger.log('debug', 'Injected haystack.lib.' + lib.name + ' to the provider [' + this.id  + ']');
-            var D = require(lib.path);
-            this.provider_instance.haystack.lib[lib.name] = new D();
-        });
-
-        //health status
-        Logger.log('debug', 'Injected is_healthy === false into the provider [' + this.id  + ']');
-        Object.defineProperty(this.provider_instance, 'is_healthy', {
-            set: function(y) {
-                this._is_healthy = y;
-            },
-            get: function() {
-                return this._is_healthy;
-            }
-        });
-        this.provider_instance.is_healthy = false;
-        this.provider_instance.service_info = this.service_info;
 
 
-    }
 }
+
+
 
 
 ServicePluginProvider.prototype.validate = function(){
