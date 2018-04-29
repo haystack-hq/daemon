@@ -3,7 +3,7 @@
 var path = require('path');
 var fs  = require('fs-extra');
 var path = require("path");
-var Logger = require("../../src/lib/logger");
+var Logger = require("../../../src/lib/logger");
 const os = require('os');
 
 var ServicePluginManager = function() {

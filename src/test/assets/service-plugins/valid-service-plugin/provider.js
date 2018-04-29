@@ -1,28 +1,41 @@
 "use strict";
 
+
 var Provider = function(){
-    this.status = "provisioning";
+    this.status = "running";
 }
+
 
 /* required implemented methods */
 Provider.prototype.init = function(done, err){
 
+
+    /*
     setInterval(() => {
-        if(this.haystack.service.service_name == "web_1"){
-            this.status = "running";
-        }
-        else{
-            this.status = "impaired";
-        }
+        console.log("********** from plugin ************", this.haystack.service.service_name);
+    }, 2000);
 
-        this.haystack.update();
-    }, 1000);
+    setTimeout(() => {
+        console.log("********** timeout from plugin ************", this.haystack.service.service_name);
+
+    }, 2000);
+    */
 
 
-    this.haystack.service.is_healthy = true;
 
-    done(true);
+
+
+    try{
+        this.haystack.service.is_healthy = true;
+        done(true);
+    }
+    catch(ex){
+        err( ex);
+    }
+
 }
+
+
 
 
 Provider.prototype.start = function(done, err){
@@ -40,7 +53,6 @@ Provider.prototype.terminate = function(done, err){
 Provider.prototype.inspect = function(done, err){
 
 
-
     done({
         status: this.status,
         info: {
@@ -52,6 +64,10 @@ Provider.prototype.inspect = function(done, err){
 /* optionally implemented interface methods */
 Provider.prototype.ssh = function(done, err){
     done(true);
+}
+
+Provider.prototype.heartbeat = function(){
+    //console.log("plugin heartbeat pulse");
 }
 
 module.exports = Provider;

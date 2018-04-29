@@ -1,9 +1,10 @@
 #! /usr/bin/env node
 var homedir = require("homedir");
 const fs = require('fs-extra');
+const path = require('path');
 
 var db = require('diskdb');
-var basePath = homedir() + "/.haystack/client-agent-db";
+var basePath = path.join(homedir() , ".haystack/client-agent-db"); //todo: change name
 
 fs.ensureDirSync(basePath);
 

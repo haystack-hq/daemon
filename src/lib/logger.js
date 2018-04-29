@@ -9,7 +9,6 @@ const env = process.env.NODE_ENV || 'development';
 
 var Logger = function(){
 
-
     //set the logging path.
     var log_path = path.join( homedir(), "/.haystack/log/");
     fs.ensureDirSync(log_path);
@@ -23,7 +22,6 @@ var Logger = function(){
         level: 'silly',
         format: winston.format.simple(),
         transports: [
-
             new (winston.transports.Console)({
                 timestamp: tsFormat,
                 colorize: true,

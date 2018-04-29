@@ -2,7 +2,7 @@
 
 var path = require('path');
 var fs  = require('fs-extra');
-var Logger = require("../../src/lib/logger");
+var Logger = require("../../../src/lib/logger");
 var Validator = require('jsonschema').Validator;
 
 var ServicePluginManifest = function(manifest_file_path){

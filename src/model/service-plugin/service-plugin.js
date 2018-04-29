@@ -5,9 +5,9 @@ var fs  = require('fs-extra');
 var Manifest = require('./service-plugin-manifest');
 var Promise = require("bluebird");
 var path = require("path");
-var Logger = require("../../src/lib/logger");
+var Logger = require("../../../src/lib/logger");
 var Validator = require('jsonschema').Validator;
-var ServicePluginProvider = require("../../src/service-plugin/service-plugin-provider");
+var ServicePluginProvider = require("./service-plugin-provider");
 const os = require('os');
 
 var ServicePlugin = function(service_name, path_to_plugin){
