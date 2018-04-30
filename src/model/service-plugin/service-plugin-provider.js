@@ -5,8 +5,8 @@ var ServicePluginLib = require("./service-plugin-lib");
 var HaystackService = require("../haystack/haystack-service");
 var Promise = require('bluebird');
 
-var _heartbeat = null;
-var _heartbeat_interval = 2000;
+var _healthcheck = null;
+var _healthcheck_interval = 2000;
 var _setInterval = setInterval;
 var _clearInterval = clearInterval;
 
@@ -16,17 +16,8 @@ var ServicePluginProvider = function(stack, service, plugin, provider, logger, s
 
 
     this.errors = [];
-
-    //stack
     this.stack = stack;
-
-
-    //update callback
     this.status_update_callback = status_update_callback;
-
-
-
-    //get provider
     this.id = provider.id;
 
     //inject helpers.
@@ -88,8 +79,8 @@ ServicePluginProvider.prototype.init_provider = function(){
     this.implement_provider_optional_actions();
 
 
-    //add heartbeat
-    this.implement_heartbeat();
+    //add healthcheck
+    this.implement_healthcheck();
 
 
 
@@ -153,15 +144,15 @@ ServicePluginProvider.prototype.implement_provider_optional_actions = function()
 
 }
 
-ServicePluginProvider.prototype.implement_heartbeat = function(){
+ServicePluginProvider.prototype.implement_healthcheck = function(){
 
-    if(this.provider_instance.heartbeat){
+    if(this.provider_instance.healthcheck){
 
-        _heartbeat = _setInterval(() => {
+        _healthcheck = _setInterval(() => {
 
             if(this.service.status == HaystackService.Statuses.running || this.service.status == HaystackService.Statuses.impaired){
 
-                this.provider_instance.heartbeat((result) => {
+                this.provider_instance.healthcheck((result) => {
 
                     this.status_update_callback({
                         status: HaystackService.Statuses.running,
@@ -181,38 +172,10 @@ ServicePluginProvider.prototype.implement_heartbeat = function(){
             }
 
 
-        }, _heartbeat_interval);
+        }, _healthcheck_interval);
 
 
     }
-
-
-
-
-    /* still used?
-    this.heartbeat = function(){
-        return new Promise((resolve, reject)  => {
-
-            //check to see if the provider supports the method.
-            if(typeof self.provider_instance[method] === "function")
-            {
-                self.provider_instance[method](function(result){
-                    resolve(result);
-                }, function(err){
-                    reject(err);
-                })
-            }
-            else
-            {
-                var msg = "Provider [" + this.id + "] does not implement the [" + method +  "] action.";
-                Logger.log('debug', msg);
-                reject(msg);
-            }
-
-        });
-    }
-    */
-
 
 
 }
@@ -235,7 +198,7 @@ ServicePluginProvider.prototype.validate = function(){
 
 
 
-ServicePluginProvider.RequiredActions = ["start",  "terminate", "inspect" ];
+ServicePluginProvider.RequiredActions = ["start",  "terminate",  "inspect" ];
 ServicePluginProvider.OptionalActions = ["ssh","stop"];
 
 

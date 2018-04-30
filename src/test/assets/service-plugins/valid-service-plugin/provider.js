@@ -66,7 +66,7 @@ Provider.prototype.ssh = function(done, err){
     done(true);
 }
 
-Provider.prototype.heartbeat = function(){
+Provider.prototype.healthcheck = function(done, err){
     //console.log("plugin heartbeat pulse");
 }
 
