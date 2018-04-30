@@ -92,11 +92,7 @@ Provider.prototype.terminate = function(done, err){
 
 }
 
-Provider.prototype.heartbeat = function(done, err){
-
-    //ping the container.
-    
-
+Provider.prototype.healthcheck = function(done, err){
 
     console.log("pulse");
     done();
