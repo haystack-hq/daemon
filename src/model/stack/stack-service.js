@@ -5,7 +5,6 @@ var appRoot = require('app-root-path');
 var fs = require("fs-extra");
 var Promise = require("bluebird");
 var Logger = require("../../../src/lib/logger");
-var ServicePluginWorker = require('../service-plugin/service-plugin-worker.js');
 var cp = require("child_process");
 var StackLogger = require("./logger");
 
@@ -91,7 +90,7 @@ StackService.prototype.load = function(){
             silent: true
         };
 
-        this.process =  cp.fork(path.resolve("model/service-plugin/service-plugin-worker.js"), [], {detached: false});
+        this.process =  cp.fork(path.resolve("model/plugin/thread.js"), [], {detached: false});
 
 
         this.process.on('exit', function () {
@@ -146,7 +145,12 @@ StackService.prototype.receive_provider_message = function(m){
     /* log to service */
     if(action == "status-update"){
         var data = m.data;
-        this.updateStatus(data.status, data.error);
+
+        if(data)
+        {
+            this.updateStatus(data.status, data.error);
+        }
+        
         return;
     }
 

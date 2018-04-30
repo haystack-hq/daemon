@@ -2,15 +2,15 @@
 
 var path = require('path');
 var fs  = require('fs-extra');
-var Manifest = require('./service-plugin-manifest');
+var Manifest = require('./manifest');
 var Promise = require("bluebird");
 var path = require("path");
 var Logger = require("../../../src/lib/logger");
 var Validator = require('jsonschema').Validator;
-var ServicePluginProvider = require("./service-plugin-provider");
+var Provider = require("./provider");
 const os = require('os');
 
-var ServicePlugin = function(service_name, path_to_plugin){
+var Plugin = function(service_name, path_to_plugin){
     try
     {
         this.id = path_to_plugin;
@@ -35,7 +35,7 @@ var ServicePlugin = function(service_name, path_to_plugin){
 
 }
 
-ServicePlugin.prototype.validate = function(){
+Plugin.prototype.validate = function(){
 
     //validate that the manifest file exists.
     if(!fs.pathExistsSync(this.manifest_file_path)){
@@ -79,7 +79,7 @@ ServicePlugin.prototype.validate = function(){
 
 }
 
-ServicePlugin.prototype.init = function(){
+Plugin.prototype.init = function(){
     var self = this;
 
     this.name = this.manifest.name;
@@ -107,7 +107,7 @@ ServicePlugin.prototype.init = function(){
 }
 
 
-ServicePlugin.prototype.get_provider_by_id = function(id){
+Plugin.prototype.get_provider_by_id = function(id){
     var providers = this.providers.filter(function (provider) { return provider.id == id });
     if(providers.length > 0){
         return providers[0];
@@ -117,11 +117,11 @@ ServicePlugin.prototype.get_provider_by_id = function(id){
     }
 }
 
-ServicePlugin.prototype.set_default_provider = function(){
+Plugin.prototype.set_default_provider = function(){
     var provider_id = this.manifest.default_provider;
 
     if(!provider_id){
-        throw new Error("The manifest the service plugin [" + this.service_name + "] has no parameter [default_provider] defined.")
+        throw new Error("The manifest the plugin [" + this.service_name + "] has no parameter [default_provider] defined.")
     }
 
     //find this provider in the list of defaults.
@@ -129,7 +129,7 @@ ServicePlugin.prototype.set_default_provider = function(){
 
 
     if(!provider){
-        throw new Error("The manifest the service plugin [" + this.service_name + "] has [default_provider] of [" + provider_id + "] which can not be found in the providers list.");
+        throw new Error("The manifest the plugin [" + this.service_name + "] has [default_provider] of [" + provider_id + "] which can not be found in the providers list.");
     }
 
     this.default_provider = provider;
@@ -137,7 +137,7 @@ ServicePlugin.prototype.set_default_provider = function(){
 
 
 /* load provider by id, roll back to default if id not found */
-ServicePlugin.prototype.getProvider = function(provider_value, mode){
+Plugin.prototype.getProvider = function(provider_value, mode){
 
     //todo: handle mode.
 
@@ -167,7 +167,7 @@ ServicePlugin.prototype.getProvider = function(provider_value, mode){
         //if we got here, no provider id.
         if(provider == null)
         {
-            throw new Error("The Service Plugin for [" + this.service_name + "] does not have a provider that matches the mode [" + mode + "].");
+            throw new Error("The Plugin for [" + this.service_name + "] does not have a provider that matches the mode [" + mode + "].");
         }
 
     }
@@ -177,15 +177,15 @@ ServicePlugin.prototype.getProvider = function(provider_value, mode){
 
         if(provider == null)
         {
-            throw new Error("The Service Plugin for [" + this.service_name + "] does not have a provider that matches [" + provider_value + "].");
+            throw new Error("The Plugin for [" + this.service_name + "] does not have a provider that matches [" + provider_value + "].");
         }
     }
     else {
 
-        throw new Error("The Service Plugin for [" + this.service_name + "] must have a provider value of a string or object. Or omit for to use the default provider.");
+        throw new Error("The Plugin for [" + this.service_name + "] must have a provider value of a string or object. Or omit for to use the default provider.");
     }
 
-    Logger.log("info", "Service Provider [" + provider.id + "] returned");
+    Logger.log("info", "Provider [" + provider.id + "] returned");
 
     return provider;
 
@@ -194,4 +194,4 @@ ServicePlugin.prototype.getProvider = function(provider_value, mode){
 
 
 
-module.exports = ServicePlugin;
+module.exports = Plugin;
