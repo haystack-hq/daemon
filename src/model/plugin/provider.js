@@ -1,7 +1,7 @@
 'use strict';
 
 var Logger = require("../../../src/lib/logger");
-var ServicePluginLib = require("./service-plugin-lib");
+var Autoload = require("./autoload/autoload");
 var StackService = require("../stack/stack-service");
 var Promise = require('bluebird');
 
@@ -11,8 +11,8 @@ var _setInterval = setInterval;
 var _clearInterval = clearInterval;
 
 
-var ServicePluginProvider = function(stack, service, plugin, provider, logger, status_update_callback){
-    Logger.log('debug', 'Init ServicePluginProvider [' + plugin.id + '] of ['+ provider.id + ']');
+var Provider = function(stack, service, plugin, provider, logger, status_update_callback){
+    Logger.log('debug', 'Init Plugin Provider [' + plugin.id + '] of ['+ provider.id + ']');
 
 
     this.errors = [];
@@ -35,7 +35,7 @@ var ServicePluginProvider = function(stack, service, plugin, provider, logger, s
 Haystack libs are all injected into the provider at runtime.
 This allows us to provide some common libraries that will make it easier on the service plugin author.
  */
-ServicePluginProvider.prototype.init_provider = function(){
+Provider.prototype.init_provider = function(){
 
 
     /* service */
@@ -49,8 +49,8 @@ ServicePluginProvider.prototype.init_provider = function(){
     var haystack = {};
 
     //libraries included
-    ServicePluginLib.GetLibs().forEach((lib) => {
-        Logger.log('debug', 'Injected haystack.lib.' + lib.name + ' to the provider [' + this.id  + ']');
+    Autoload.GetLibs().forEach((lib) => {
+        Logger.log('debug', 'Autoloaded haystack.lib.' + lib.name + ' to the plugin provider [' + this.id  + ']');
         var D = require(lib.path);
         haystack[lib.name] = new D();
     });
@@ -90,11 +90,11 @@ ServicePluginProvider.prototype.init_provider = function(){
 
 
 /* adds methods for all required actions */
-ServicePluginProvider.prototype.implement_provider_required_actions = function(){
+Provider.prototype.implement_provider_required_actions = function(){
     var self = this;
 
     //required actions.
-    ServicePluginProvider.RequiredActions.forEach((method) => {
+    Provider.RequiredActions.forEach((method) => {
         this[method] = function(){
             return new Promise((resolve, reject)  => {
                 self.provider_instance[method](function(result){
@@ -112,11 +112,11 @@ ServicePluginProvider.prototype.implement_provider_required_actions = function()
 
 
 /* adds not implemented results for all optional actions. provides an error when not implemented. */
-ServicePluginProvider.prototype.implement_provider_optional_actions = function(){
+Provider.prototype.implement_provider_optional_actions = function(){
     var self = this;
 
     //optional actions.
-    ServicePluginProvider.OptionalActions.forEach((method) => {
+    Provider.OptionalActions.forEach((method) => {
 
         this[method] = function(){
             return new Promise((resolve, reject)  => {
@@ -132,7 +132,7 @@ ServicePluginProvider.prototype.implement_provider_optional_actions = function()
                 }
                 else
                 {
-                    var msg = "Provider [" + this.id + "] does not implement the [" + method +  "] action.";
+                    var msg = "Plugin Provider [" + this.id + "] does not implement the [" + method +  "] action.";
                     Logger.log('debug', msg);
                     reject(msg);
                 }
@@ -144,7 +144,7 @@ ServicePluginProvider.prototype.implement_provider_optional_actions = function()
 
 }
 
-ServicePluginProvider.prototype.implement_healthcheck = function(){
+Provider.prototype.implement_healthcheck = function(){
 
     if(this.provider_instance.healthcheck){
 
@@ -154,6 +154,8 @@ ServicePluginProvider.prototype.implement_healthcheck = function(){
 
                 this.provider_instance.healthcheck((result) => {
 
+                    console.log("I GOT HERE A", StackService.Statuses.running);
+
                     this.status_update_callback({
                         status: StackService.Statuses.running,
                         error: null
@@ -162,6 +164,8 @@ ServicePluginProvider.prototype.implement_healthcheck = function(){
                 }, (err) => {
                     this.service.status = StackService.Statuses.impaired;
                     this.service.error = err;
+
+                    console.log("I GOT HERE B", this.service.status);
 
                     //send this status back to the service.
                     this.status_update_callback({
@@ -180,11 +184,11 @@ ServicePluginProvider.prototype.implement_healthcheck = function(){
 
 }
 
-ServicePluginProvider.prototype.validate = function(){
+Provider.prototype.validate = function(){
     var is_valid = true;
 
     //validate that the provider has required methods.
-    ServicePluginProvider.RequiredActions.forEach((method) => {
+    Provider.RequiredActions.forEach((method) => {
         if (typeof this.provider_instance[method] != "function") {
             is_valid = false;
             this.errors.push("Provider [" + this.id + "] is mising required method [" + method + "].");
@@ -198,9 +202,9 @@ ServicePluginProvider.prototype.validate = function(){
 
 
 
-ServicePluginProvider.RequiredActions = ["start",  "terminate",  "inspect" ];
-ServicePluginProvider.OptionalActions = ["ssh","stop"];
+Provider.RequiredActions = ["start",  "terminate",  "inspect" ];
+Provider.OptionalActions = ["ssh","stop"];
 
 
-module.exports = ServicePluginProvider;
+module.exports = Provider;
 

@@ -8,7 +8,7 @@ var path = require('path');
 var fs = require('fs-extra');
 var process = require('process');
 var fp = require("find-free-port");
-var ServicePluginManager = require("./model/service-plugin/service-plugin-manager");
+var PluginManager = require("./model/plugin/manager");
 var StackManager = require("./model/stack/stack-manager");
 var db = require('./model/db/db-conn');
 
@@ -58,7 +58,7 @@ App.prototype.start = function(){
 
 
         //todo: we will be replacing this with a service plugin repository. But for now.
-        var plugins_dir = ServicePluginManager.GetPluginDirectory();
+        var plugins_dir = PluginManager.GetPluginDirectory();
         fs.ensureDirSync(plugins_dir);
         fs.copySync(path.join(__dirname,  "/tmp/helloworld"), path.join(plugins_dir, "helloworld") );
     });

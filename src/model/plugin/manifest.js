@@ -5,9 +5,9 @@ var fs  = require('fs-extra');
 var Logger = require("../../../src/lib/logger");
 var Validator = require('jsonschema').Validator;
 
-var ServicePluginManifest = function(manifest_file_path){
+var Manifest = function(manifest_file_path){
 
-    Logger.log('debug', 'Init ServicePluginManifest with file ['+ manifest_file_path + ']');
+    Logger.log('debug', 'Init Manifest with file ['+ manifest_file_path + ']');
 
     this.manifest_file_path = manifest_file_path;
 
@@ -21,14 +21,14 @@ var ServicePluginManifest = function(manifest_file_path){
 }
 
 
-ServicePluginManifest.prototype.validate = function() {
+Manifest.prototype.validate = function() {
     //validate the manifest file.
 
     this.errors = [];
 
     try
     {
-        Logger.log('debug', 'Validating the Service Plugin Manifest', { manifest_file_path: this.manifest_file_path });
+        Logger.log('debug', 'Validating the Manifest', { manifest_file_path: this.manifest_file_path });
 
         //validate that the file exists.
         if(!fs.pathExistsSync(this.manifest_file_path)){
@@ -37,16 +37,12 @@ ServicePluginManifest.prototype.validate = function() {
             this.errors.push(msg);
             return;
         }
-        else
-        {
-            Logger.log('debug', 'Service Plugin Manifest file exists');
-        }
+
 
 
         //validate that the format is valid json.
         try{
             fs.readJsonSync(this.manifest_file_path, {throw: true});
-            Logger.log('debug', 'Service Plugin Manifest file is valid JSON');
         }
         catch(ex)
         {
@@ -77,7 +73,7 @@ ServicePluginManifest.prototype.validate = function() {
 
 }
 
-ServicePluginManifest.prototype.validateSchema = function() {
+Manifest.prototype.validateSchema = function() {
 
     var valid = true;
 
@@ -108,9 +104,9 @@ ServicePluginManifest.prototype.validateSchema = function() {
 
 
 
-ServicePluginManifest.prototype.hasErrors = function() {
+Manifest.prototype.hasErrors = function() {
     return this.errors.length > 0 ? true : false;
 }
 
 
-module.exports = ServicePluginManifest;
+module.exports = Manifest;

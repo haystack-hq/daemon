@@ -1,14 +1,14 @@
 const path = require("path");
 var fs  = require('fs-extra');
 
-var ServicePluginLib = {};
+var Autoload = {};
 
 /* return a list of libs */
-ServicePluginLib.GetLibs = function(){
+Autoload.GetLibs = function(){
 
     var libs = [];
 
-    var folder = path.join(__dirname,  'service-plugin-provider/lib');
+    var folder = path.join(__dirname,  'libs');
 
     //get all the libs.
     fs.readdirSync(folder).forEach(file => {
@@ -24,4 +24,4 @@ ServicePluginLib.GetLibs = function(){
 
 
 
-module.exports = ServicePluginLib;
+module.exports = Autoload;
