@@ -90,7 +90,7 @@ StackService.prototype.load = function(){
             silent: true
         };
 
-        this.process =  cp.fork(path.resolve("model/plugin/thread.js"), [], {detached: false});
+        this.process =  cp.fork(path.join(__dirname, "../plugin/thread.js"), [], {detached: false});
 
 
         this.process.on('exit', function () {
