@@ -1,26 +1,15 @@
 var DockerStack = require("./docker/docker-stack");
 Haystack = require("../../model/haystack");
 HaystackService = require("../../model/haystack-service");
-var Build = require("./../../lib/build/local-build");
 var DockerStack = require("./../../interface/local/docker/docker-stack");
 var DockerServiceError = require("./../../errors/docker-service-error");
+var Logger = require("./../../lib/logger");
 
 
 var LocalInterface = function(haystack){
     this.haystack = haystack;
 
-    //create the build.
-    if(this.haystack.build == null){
-        this.compileBuild();
-    }
 
-
-    this.docker_stack = new DockerStack(this.haystack.identifier, this.haystack.build, this.haystack.status);
-}
-
-LocalInterface.prototype.compileBuild = function(){
-    var build = new Build(this.haystack.identifier, this.haystack.haystack_file);
-    this.haystack.build = build.build();
 }
 
 
@@ -28,9 +17,32 @@ LocalInterface.prototype.compileBuild = function(){
 LocalInterface.prototype.start = function(){
     var self = this;
 
-    //recompile build
-    this.compileBuild();
 
+
+
+    //download all docker images: todo:
+    docker.importImage();
+
+    //start all networks: todo:
+
+
+    //start all services
+
+    /*
+    1. Docker: MySql
+
+    2. Vagrant: App
+    vagrant.importImage();
+
+    3. LXD: Something strange
+
+     */
+
+
+
+
+
+    /*
     self.docker_stack.start().then(function () {
         self.sync();
     }).catch(function (error_obj) {
@@ -45,6 +57,9 @@ LocalInterface.prototype.start = function(){
         self.sync();
 
     });
+    */
+
+
 }
 
 
@@ -58,9 +73,6 @@ LocalInterface.prototype.stop = function(){
 
 LocalInterface.prototype.terminate = function(){
     var self = this;
-
-
-
 
     //terminate the stack
     this.docker_stack.terminate().then(function () {

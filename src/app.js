@@ -1,7 +1,6 @@
-var Haystack = require("./model/haystack");
-var DockerApi = require("./lib/docker-api");
-var DockerEvents = require('./lib/docker-events');
-var LocalBuild = require('./lib/build/local-build');
+"use strict";
+
+
 var Tasks = require('./lib/tasks');
 var WebServer = require('./webserver');
 var events = require('events');
@@ -9,69 +8,59 @@ var path = require('path');
 var fs = require('fs-extra');
 var process = require('process');
 var fp = require("find-free-port");
+var ServicePluginManager = require("./model/service-plugin/service-plugin-manager");
+var HaystackManager = require("./model/haystack/haystack-manager");
+var db = require('./model/db/db-conn');
+
+
+
 
 
 var App = function(){
-    this.config_path = process.env.HOME + '/.haystack/config.json';
 
+    this.config_path = path.join( process.env.HOME , '.haystack/config.json');
     this.docker_events = null;
-    this.docker = new DockerApi();
-    this.event_bus = new events.EventEmitter();
+    console.log("made it4");
+    this.haystack_manager = new HaystackManager(db);
     this.config = {};
+
+
 }
 
 App.prototype.start = function(){
-    var self = this;
+
+
 
     //load configuration
-    this.loadConfig().then(function(){
+    this.loadConfig().then(() =>{
 
-        console.log(self.config.agent_port);
-
-
-        //listen for docker events.
-        self.docker_events = new DockerEvents({ docker: self.docker  });
-        self.docker_events.onContainerChange = function(status, data){
-            //find stack and sync it.
-            var identifier = data.Actor.Attributes["com.haystack.identifier"];
-            var haystack = new Haystack(self.event_bus).load(identifier);
+        console.log(this.config.agent_port);
 
 
+        //load all the stacks on startup.
+        this.haystack_manager.init();
 
-            if(haystack){
-                haystack.sync();
-            }
-        };
-        self.docker_events.start();
-
-
-
-        //load stacks from db on startup.
-        var haystacks = Haystack.Search();
-        haystacks.forEach(function (haystack_data) {
-            var haystack = new Haystack(self.event_bus).load(haystack_data.identifier);
-            if(haystack){
-                haystack.sync();
-            }
-        });
 
 
         //webserver + streams
-        var webServer = new WebServer(self.config.agent_port, self.event_bus);
+        var webServer = new WebServer(this.config.agent_port, this.haystack_manager);
         webServer.listen();
 
 
 
         //tasks
-        var tasks = new Tasks();
+        var tasks = new Tasks(this.haystack_manager);
         tasks.start();
 
 
 
+
+
+
         //todo: we will be replacing this with a service plugin repository. But for now.
-        var plugins_dir = LocalBuild.GetServicePackagePath();
+        var plugins_dir = ServicePluginManager.GetPluginDirectory();
         fs.ensureDirSync(plugins_dir);
-        fs.copySync(path.resolve(__dirname) + "/tmp/docker.container", plugins_dir + "/docker.container/");
+        fs.copySync(path.join(__dirname,  "/tmp/helloworld"), path.join(plugins_dir, "helloworld") );
     });
 
 

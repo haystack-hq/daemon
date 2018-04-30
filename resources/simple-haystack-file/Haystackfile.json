@@ -5,31 +5,19 @@
     }
   ,
   "services": {
-    "php7.1": {
-      "type": "docker.container",
-      "image": "php:7.1-apache",
+    "laravel": {
+      "package": "haystack/laravel",
       "src": "/html/http/www",
-      "ports": [
-        {
-          "container": "80",
-          "host": "80"
-        }
-      ]
+      "http_port": 8001,
+      "https_port": 8002,
+      "depends_on": "mysql"
     },
     "mysql": {
-      "type": "docker.container",
-      "image": "mysql/mysql-server",
-      "db": {
-        "name": "laravel",
-        "username": "mysql_username",
-        "pw": "mysql_password"
-      },
-      "ports": [
-        {
-          "container": "3306",
-          "host": "3306"
-        }
-      ]
+      "package": "haystack/mysql",
+      "db_name": "laravel",
+      "db_user": "$mysql_username",
+      "db_password": "$mysql_password",
+      "port": 8003
     }
   }
 }

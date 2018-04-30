@@ -46,3 +46,16 @@ Body:
 Duration in seconds that the stacks will be removed after they have been terminated. Min value 0.
 
 
+
+
+# logging
+
+## info
+
+High level messages about the actions that Haystack is performing.
+
+## debug
+
+Detailed infromation about the data witihn the method calls.
+
+

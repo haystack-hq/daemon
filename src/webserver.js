@@ -1,3 +1,4 @@
+
 var Streams = require('./api/controllers/streams');
 
 /* web server */
@@ -10,13 +11,14 @@ var StackController = require('./api/controllers/stack-controller');
 
 
 
-var WebServer = function (port, event_bus) {
+
+var WebServer = function (port, haystack_manager) {
     var self = this;
-    this.event_bus = event_bus;
+    this.haystack_manager = haystack_manager;
     this.port = port;
 
-    expressApp.use('/stacks', function (req, res, next) {
-        req.event_bus = self.event_bus;
+    expressApp.use('/stacks',  (req, res, next) => {
+        req.haystack_manager = this.haystack_manager;
         next();
     }, StackController);
 
@@ -29,7 +31,7 @@ WebServer.prototype.listen = function(){
         console.log('Haystack daemon listening on port ' + port);
     });
 
-    this.streams = new Streams(server, this.event_bus);
+    this.streams = new Streams(server);
     this.streams.listen();
 }
 

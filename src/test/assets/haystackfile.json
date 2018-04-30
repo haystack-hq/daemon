@@ -1,0 +1,23 @@
+{
+  "services": {
+    "web_1": {
+      "plugin": "/Users/mk/projects/haystackhq/daemon/src/test/assets/service-plugins/valid-service-plugin",
+      "provider": {
+        "local": "test_provider"
+      },
+      "http_port": "8805"
+    },
+    "web_2": {
+      "plugin": "/Users/mk/projects/haystackhq/daemon/src/test/assets/service-plugins/valid-service-plugin",
+      "provider": "test_provider",
+      "http_port": "8806"
+    },
+    "web_3": {
+      "plugin": "/Users/mk/projects/haystackhq/daemon/src/test/assets/service-plugins/valid-service-plugin",
+      "http_port": "8807"
+    }
+  }
+}
+
+
+

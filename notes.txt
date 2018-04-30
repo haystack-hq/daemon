@@ -1,0 +1,60 @@
+
+
+
+
+Lifecycle of a new stack
+
+Stack Validate()
+- Validates the Haystackfile
+- Validates dependencies are not circular.
+- Validates that each service plugin is valid.
+- Validates each service parameter within against the service plugin manifest parameters section.
+
+
+Stack Init()
+- Creates all variables and recreates the stack with variables defined.
+- Recreates the Haystack services in the correct order based on dependencies.
+- Creates any networks within the stack
+- Loops each services within the stack and runs the init() command. Waits for each service to complete.
+- Returns a true or false.
+    On error, errors at each service are propagated up to the Haystack.
+
+
+Stack Start()
+- Loops each service within the stack and runs the start() command.
+    If there are any dependencies, it waits for each service is_healthy to be true.
+- Returns a true or false.
+    On error, errors at each service are propagated up to the Haystack.
+
+
+Stack Stop()
+- Resorts the services in the oposite order. (all stacks that have a dependency will be first)
+- Loops each service within the stack and runs the stop() command.
+    it waits for each service stop() command to return true;
+- Returns a true or false.
+    On error, errors at each service are propagated up to the Haystack.
+
+
+Stack Terminate()
+- Resorts the services in the oposite order. (all stacks that have a dependency will be first)
+- Loops each service within the stack and runs the terminate() command.
+    it waits for each service stop() command to return true;
+- Returns a true or false.
+    On error, errors at each service are propagated up to the Haystack.
+
+
+
+
+Lifecycle of a single service
+
+Haystack inits a HaystackService(service_info)
+
+HaystackService sets it's ServiceProvider
+
+HaystackService runs action (start, stop, terminate, etc)
+
+
+
+
+
+

@@ -1,0 +1,21 @@
+{
+  "name": "valid-service-plugin",
+  "version": "0.1",
+
+  "providers": {
+    "test_provider": "provider.js"
+  },
+  "default_provider": "test_provider",
+
+  "properties": [
+    {
+      "label": "src",
+      "type": "path",
+      "required": false
+    }
+  ]
+}
+
+
+
+
