@@ -7,12 +7,12 @@ var should = chai.should();
 const os = require('os');
 const path = require("path");
 var fs  = require('fs-extra');
-var Haystack = require("../../../src/model/haystack");
-var HaystackService = require("../../../src/model/haystack-service");
+var Haystack = require("../../../src/model/stack");
+var HaystackService = require("../../../src/model/stack-service");
 var ServicePluginProvider = require("../../../src/service-plugin/service-plugin-provider");
 
 
-describe('haystack-service', () => {
+describe('stack-service', () => {
 
     var valid_stack_service, mock_service_provider = null;
     var asset_path = path.join(__dirname, "../assets");

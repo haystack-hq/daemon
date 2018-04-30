@@ -9,7 +9,7 @@ var fs = require('fs-extra');
 var process = require('process');
 var fp = require("find-free-port");
 var ServicePluginManager = require("./model/service-plugin/service-plugin-manager");
-var HaystackManager = require("./model/haystack/haystack-manager");
+var StackManager = require("./model/stack/stack-manager");
 var db = require('./model/db/db-conn');
 
 
@@ -21,7 +21,7 @@ var App = function(){
     this.config_path = path.join( process.env.HOME , '.haystack/config.json');
     this.docker_events = null;
     console.log("made it4");
-    this.haystack_manager = new HaystackManager(db);
+    this.stack_manager = new StackManager(db);
     this.config = {};
 
 
@@ -38,18 +38,18 @@ App.prototype.start = function(){
 
 
         //load all the stacks on startup.
-        this.haystack_manager.init();
+        this.stack_manager.init();
 
 
 
         //webserver + streams
-        var webServer = new WebServer(this.config.agent_port, this.haystack_manager);
+        var webServer = new WebServer(this.config.agent_port, this.stack_manager);
         webServer.listen();
 
 
 
         //tasks
-        var tasks = new Tasks(this.haystack_manager);
+        var tasks = new Tasks(this.stack_manager);
         tasks.start();
 
 

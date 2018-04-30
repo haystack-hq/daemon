@@ -8,7 +8,7 @@ chai.use(chaiAsPromised);
 var fs = require("fs-extra");
 var path = require("path");
 var homedir = require("homedir");
-var Haystack = require("./../../../src/model/haystack");
+var Haystack = require("./../../../src/model/stack");
 var events = require('events');
 
 

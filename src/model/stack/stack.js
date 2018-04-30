@@ -1,7 +1,7 @@
 
 
 var db = require('./../db/db-conn');
-var HaystackService = require('./haystack-service');
+var StackService = require('./stack-service');
 var base64 = require("base-64");
 var fs  = require('fs-extra');
 var path = require('path');
@@ -14,29 +14,29 @@ var StackLogger = require("./logger");
 
 
 
-var Haystack = function(data){
+var Stack = function(data){
 
     //set defaults.
     this._id = null;
     this.identifier = null;
     this.services = null;
-    this.mode = Haystack.Modes.local;
+    this.mode = Stack.Modes.local;
     this.provider = null;
-    this.status = Haystack.Statuses.pending;
-    this.health = Haystack.Health.unhealthy;
+    this.status = Stack.Statuses.pending;
+    this.health = Stack.Health.unhealthy;
     this.created_by = null;
-    this.haystack_file = null;
+    this.stack_file = null;
     this.terminated_on = null;
     this.stack_file_location = null;
 
 
     /* get / find the stack file based on the path provided. */
-    if(data && data.stack_file_location && this.mode == Haystack.Modes.local){
+    if(data && data.stack_file_location && this.mode == Stack.Modes.local){
         this.stack_file_location = data.stack_file_location;
 
         //todo: this should be able to be yml or json, right now it only works for json.
-        var haystack_file_contents = fs.readFileSync(this.stack_file_location, 'utf8');
-        data.haystack_file = JSON.parse(haystack_file_contents);
+        var stack_file_contents = fs.readFileSync(this.stack_file_location, 'utf8');
+        data.stack_file = JSON.parse(stack_file_contents);
 
 
     }
@@ -52,7 +52,7 @@ var Haystack = function(data){
         this.health = data.health ? data.health : this.health;
         this.created_by = data.created_by ? data.created_by : this.created_by;
         this.terminated_on = data.terminated_on ? data.terminated_on : this.terminated_on;
-        this.haystack_file = data.haystack_file ? data.haystack_file : null;
+        this.stack_file = data.stack_file ? data.stack_file : null;
 
 
         //todo: resort services by dependencies.
@@ -61,16 +61,16 @@ var Haystack = function(data){
         console.log("services_data", services_data);
 
         this.services = [];
-        Object.keys(this.haystack_file.services).forEach((key) => {
+        Object.keys(this.stack_file.services).forEach((key) => {
 
             var service_data = null;
             if(data.services && data.services[key]){
                 service_data = data.services[key];
             }
 
-            var service_info = this.haystack_file.services[key];
-            var haystack_service = new HaystackService(this, key, service_data, service_info);
-            this.services.push(haystack_service);
+            var service_info = this.stack_file.services[key];
+            var stack_service = new StackService(this, key, service_data, service_info);
+            this.services.push(stack_service);
         });
 
         this.stack_logger = new StackLogger(this.identifier);
@@ -86,16 +86,16 @@ var Haystack = function(data){
 
 
 
-Haystack.prototype.start = function(){
+Stack.prototype.start = function(){
 
-    this.updateStatus(Haystack.Statuses.starting);
+    this.updateStatus(Stack.Statuses.starting);
 
     return new Promise((resolve, reject)  => {
         //all promises are complete.
         Promise.mapSeries(this.services, function(service){
             return service.start();
         }).then((res) => {
-            this.updateStatus(Haystack.Statuses.running);
+            this.updateStatus(Stack.Statuses.running);
             resolve(res);
         }).catch((err) =>{
             reject(err);
@@ -104,16 +104,16 @@ Haystack.prototype.start = function(){
 }
 
 
-Haystack.prototype.stop = function(){
+Stack.prototype.stop = function(){
 
-    this.updateStatus(Haystack.Statuses.stopping);
+    this.updateStatus(Stack.Statuses.stopping);
 
     return new Promise((resolve, reject)  => {
         //all promises are complete.
         Promise.mapSeries(this.services, function(service){
             return service.stop();
         }).then((res) => {
-            this.updateStatus(Haystack.Statuses.stopped);
+            this.updateStatus(Stack.Statuses.stopped);
             resolve(res);
         }).catch((err) => {
             reject(err);
@@ -122,10 +122,10 @@ Haystack.prototype.stop = function(){
 }
 
 
-Haystack.prototype.terminate = function(){
+Stack.prototype.terminate = function(){
 
     //validate that we can terminate.
-    this.updateStatus(Haystack.Statuses.terminating);
+    this.updateStatus(Stack.Statuses.terminating);
 
     return new Promise((resolve, reject)  => {
         //all promises are complete.
@@ -133,7 +133,7 @@ Haystack.prototype.terminate = function(){
             return service.terminate();
         }).then((res) => {
 
-            this.updateStatus(Haystack.Statuses.terminated);
+            this.updateStatus(Stack.Statuses.terminated);
             this.terminated_on = Date.now();
             this.save();
 
@@ -146,7 +146,7 @@ Haystack.prototype.terminate = function(){
 }
 
 
-Haystack.prototype.inspect = function(){
+Stack.prototype.inspect = function(){
 
     return new Promise((resolve, reject)  => {
         //all promises are complete.
@@ -162,7 +162,7 @@ Haystack.prototype.inspect = function(){
 }
 
 
-Haystack.prototype.getServicesData = function(){
+Stack.prototype.getServicesData = function(){
     var data = {};
     this.services.forEach((service) => {
         data[service.service_name] = service.getData();
@@ -171,7 +171,7 @@ Haystack.prototype.getServicesData = function(){
     return data;
 }
 
-Haystack.prototype.getData = function(){
+Stack.prototype.getData = function(){
 
     //create a data object to be saved.
     var data = {
@@ -185,19 +185,19 @@ Haystack.prototype.getData = function(){
         health: this.health,
         created_by: this.created_by,
         terminated_on: this.terminated_on,
-        haystack_file: this.haystack_file
+        stack_file: this.stack_file
     }
 
     return data;
 }
 
 
-Haystack.prototype.updateStatus = function(status){
+Stack.prototype.updateStatus = function(status){
 
     this.stack_logger.log("info", "status update: " +  status);
 
-    if(Haystack.Statuses[status] == undefined){
-        throw new Error("The status [" + status + "] is not a valid haystack status.");
+    if(Stack.Statuses[status] == undefined){
+        throw new Error("The status [" + status + "] is not a valid stack status.");
     }
 
     this.status = status;
@@ -205,12 +205,12 @@ Haystack.prototype.updateStatus = function(status){
 }
 
 
-Haystack.prototype.refresh = function(){
+Stack.prototype.refresh = function(){
     Logger.log('debug', 'Refreshing stack [' + this.identifier  + ']');
     this.save();
 }
 
-Haystack.prototype.save = function(){
+Stack.prototype.save = function(){
 
     var data = this.getData();
 
@@ -238,7 +238,7 @@ Haystack.prototype.save = function(){
 
 
 
-Haystack.Statuses = {
+Stack.Statuses = {
     pending: "pending",
     starting: "starting",
     provisioning: "provisioning",
@@ -253,16 +253,16 @@ Haystack.Statuses = {
 
 
 
-Haystack.Health = {
+Stack.Health = {
     healthy: "healthy",
     unhealthy: "unhealthy"
 }
 
 
-Haystack.Modes = {
+Stack.Modes = {
     local: "local"
 }
 
 
 
-module.exports = Haystack;
+module.exports = Stack;

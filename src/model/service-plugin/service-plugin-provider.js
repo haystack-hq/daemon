@@ -2,7 +2,7 @@
 
 var Logger = require("../../../src/lib/logger");
 var ServicePluginLib = require("./service-plugin-lib");
-var HaystackService = require("../haystack/haystack-service");
+var StackService = require("../stack/stack-service");
 var Promise = require('bluebird');
 
 var _healthcheck = null;
@@ -150,17 +150,17 @@ ServicePluginProvider.prototype.implement_healthcheck = function(){
 
         _healthcheck = _setInterval(() => {
 
-            if(this.service.status == HaystackService.Statuses.running || this.service.status == HaystackService.Statuses.impaired){
+            if(this.service.status == StackService.Statuses.running || this.service.status == StackService.Statuses.impaired){
 
                 this.provider_instance.healthcheck((result) => {
 
                     this.status_update_callback({
-                        status: HaystackService.Statuses.running,
+                        status: StackService.Statuses.running,
                         error: null
                     })
 
                 }, (err) => {
-                    this.service.status = HaystackService.Statuses.impaired;
+                    this.service.status = StackService.Statuses.impaired;
                     this.service.error = err;
 
                     //send this status back to the service.
