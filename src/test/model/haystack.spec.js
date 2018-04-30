@@ -11,7 +11,7 @@ var homedir = require("homedir");
 
 
 
-var Haystack = require("./../../../src/model/haystack");
+var Haystack = require("./../../../src/model/stack");
 var LocalInterface = require("./../../../src/interface/local/local-interface");
 var base64 = require("base-64");
 var events = require('events');

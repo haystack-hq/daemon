@@ -12,7 +12,7 @@ var StackLogger = require("./logger");
 
 
 
-var HaystackService = function(stack,  service_name, service_data, service_info){
+var StackService = function(stack,  service_name, service_data, service_info){
 
     //set some default properties
     this.stack = stack;
@@ -22,9 +22,7 @@ var HaystackService = function(stack,  service_name, service_data, service_info)
     this.plugin = null;
     this.error = null;
     this.logger =  new StackLogger(stack.identifier,  this.service_name);
-    this.status = HaystackService.Statuses.pending;
-
-    console.log("service info man", service_info);
+    this.status = StackService.Statuses.pending;
 
 
     //load the services data passed in.
@@ -50,7 +48,7 @@ var HaystackService = function(stack,  service_name, service_data, service_info)
 
 }
 
-HaystackService.prototype.refresh_service = (service) => {
+StackService.prototype.refresh_service = (service) => {
 
     Logger.log('info', "Refreshing service [" + service.service_name + "] ");
 
@@ -64,9 +62,7 @@ HaystackService.prototype.refresh_service = (service) => {
 
 }
 
-HaystackService.prototype.load = function(){
-
-    console.log("HaystackService.load");
+StackService.prototype.load = function(){
 
     //load up the plugin
     var plugin_path = this.service_info.plugin;
@@ -136,13 +132,13 @@ HaystackService.prototype.load = function(){
 
 }
 
-HaystackService.prototype.receive_provider_message = function(m){
+StackService.prototype.receive_provider_message = function(m){
     var action = m.action;
     var state = m.state; //error or success
 
 
     if(action == "uncaught-exception"){
-        this.updateStatus(HaystackService.Statuses.impaired, m.data);
+        this.updateStatus(StackService.Statuses.impaired, m.data);
         return;
     }
 
@@ -190,7 +186,7 @@ HaystackService.prototype.receive_provider_message = function(m){
 
 
 
-HaystackService.prototype.send_provider_message = function(action, params, success_callback, error_callback){
+StackService.prototype.send_provider_message = function(action, params, success_callback, error_callback){
     var message = {
         action: action,
         params: params
@@ -211,7 +207,7 @@ HaystackService.prototype.send_provider_message = function(action, params, succe
 
 
 
-HaystackService.prototype.getData = function(){
+StackService.prototype.getData = function(){
     return  {
         status: this.status,
         is_healthy: this.is_healthy,
@@ -220,25 +216,25 @@ HaystackService.prototype.getData = function(){
 }
 
 /*
-Begin Haystack Service Actions
+Begin StackService Actions
  */
 
 
 
-HaystackService.prototype.start = function(){
+StackService.prototype.start = function(){
     return new Promise((resolve, reject)  => {
         Logger.log('info', "Action [Start] called on [" + this.service_name + "]");
-        this.updateStatus(  HaystackService.Statuses.starting);
+        this.updateStatus(  StackService.Statuses.starting);
 
         this.send_provider_message("start", {},
             (result) => {
-                this.updateStatus(  HaystackService.Statuses.running );
+                this.updateStatus(  StackService.Statuses.running );
                 Logger.log('info', "Action [Start] resolved on [" + this.service_name + "]");
                 resolve(result);
             },
             (err) => {
                 Logger.log('info', "Action [Start] error on [" + this.service_name + "]", {error: err});
-                this.updateStatus(  HaystackService.Statuses.impaired, err );
+                this.updateStatus(  StackService.Statuses.impaired, err );
                 reject(err);
             }
         );
@@ -249,20 +245,20 @@ HaystackService.prototype.start = function(){
 
 
 
-HaystackService.prototype.stop = function(){
+StackService.prototype.stop = function(){
     return new Promise((resolve, reject)  => {
         Logger.log('info', "Action [Stop] called on [" + this.service_name + "]");
-        this.updateStatus(  HaystackService.Statuses.stopping );
+        this.updateStatus(  StackService.Statuses.stopping );
 
         this.send_provider_message("stop", {},
             (result) => {
-                this.updateStatus(  HaystackService.Statuses.stopped );
+                this.updateStatus(  StackService.Statuses.stopped );
                 Logger.log('info', "Action [Stop] resolved on [" + this.service_name + "]");
                 resolve(result);
             },
             (err) => {
                 Logger.log('info', "Action [Stop] error on [" + this.service_name + "]", {error: err});
-                this.updateStatus(  HaystackService.Statuses.impaired, err );
+                this.updateStatus(  StackService.Statuses.impaired, err );
                 reject(err);
             }
         );
@@ -274,16 +270,16 @@ HaystackService.prototype.stop = function(){
 
 
 
-HaystackService.prototype.terminate = function(){
+StackService.prototype.terminate = function(){
     return new Promise((resolve, reject)  => {
         Logger.log('info', "Action [Terminate] called on [" + this.service_name + "]");
-        this.updateStatus(  HaystackService.Statuses.terminating );
+        this.updateStatus(  StackService.Statuses.terminating );
 
 
 
         this.send_provider_message("terminate", {},
             (result) => {
-                this.updateStatus(  HaystackService.Statuses.terminated );
+                this.updateStatus(  StackService.Statuses.terminated );
                 Logger.log('info', "Action [Terminate] resolved on [" + this.service_name + "]");
 
 
@@ -295,7 +291,7 @@ HaystackService.prototype.terminate = function(){
             },
             (err) => {
                 Logger.log('info', "Action [Terminate] error on [" + this.service_name + "]", {error: err});
-                this.updateStatus(  HaystackService.Statuses.impaired, err);
+                this.updateStatus(  StackService.Statuses.impaired, err);
                 reject(err);
             }
         );
@@ -307,7 +303,7 @@ HaystackService.prototype.terminate = function(){
 
 
 
-HaystackService.prototype.inspect = function(){
+StackService.prototype.inspect = function(){
     return new Promise((resolve, reject)  => {
         Logger.log('info', "Action [Inspect] called on [" + this.service_name + "]");
 
@@ -319,7 +315,7 @@ HaystackService.prototype.inspect = function(){
             },
             (err) => {
                 Logger.log('info', "Action [Inspect] error on [" + this.service_name + "]", {error: err});
-                this.updateStatus(HaystackService.Statuses.impaired, err);
+                this.updateStatus(StackService.Statuses.impaired, err);
                 reject(err);
             }
         );
@@ -330,7 +326,7 @@ HaystackService.prototype.inspect = function(){
 
 
 
-HaystackService.prototype.ssh = function(){
+StackService.prototype.ssh = function(){
     return new Promise((resolve, reject)  => {
         Logger.log('info', "Action [Ssh] called on [" + this.service_name + "]");
 
@@ -351,14 +347,14 @@ HaystackService.prototype.ssh = function(){
 }
 
 /*
- End Haystack Service Actions
+ End StackService Actions
  */
 
 
 
-HaystackService.prototype.updateStatus = function(status, error_msg){
+StackService.prototype.updateStatus = function(status, error_msg){
 
-    if(HaystackService.Statuses[status] == undefined){
+    if(StackService.Statuses[status] == undefined){
         throw new Error("The status [" + status + "] is not a valid service status.");
     }
 
@@ -394,12 +390,12 @@ HaystackService.prototype.updateStatus = function(status, error_msg){
 
 
 
-HaystackService.Modes = {
+StackService.Modes = {
     local: "local"
 }
 
 
-HaystackService.Statuses = {
+StackService.Statuses = {
     pending: "pending",
     starting: "starting",
     running: "running",
@@ -412,4 +408,4 @@ HaystackService.Statuses = {
 
 
 
-module.exports = HaystackService;
+module.exports = StackService;

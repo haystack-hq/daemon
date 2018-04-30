@@ -6,7 +6,7 @@ var bodyParser = require('body-parser');
 router.use(bodyParser.urlencoded({ extended: true }));
 router.use(bodyParser.json());
 var fs = require("fs-extra");
-var HaystackManager = require("../../model/haystack/haystack-manager");
+var StackManager = require("../../model/stack/stack-manager");
 
 
 
@@ -14,8 +14,8 @@ var HaystackManager = require("../../model/haystack/haystack-manager");
 //todo: add search feature. ability to search by path
 router.get('/', function (req, res) {
     //return all the stacks
-    var haystacks = req.haystack_manager.search();
-    res.status(200).send(haystacks);
+    var stacks = req.stack_manager.search();
+    res.status(200).send(stacks);
 });
 
 
@@ -28,12 +28,12 @@ router.post('/search', function (req, res) {
 
         if(params.stack_file_location)
         {
-            //find the haystack file,
-            params.stack_file_location = HaystackManager.FindHaystackFilePath(params.stack_file_location)
+            //find the stack file,
+            params.stack_file_location = StackManager.FindStackFilePath(params.stack_file_location)
         }
 
-        var haystacks = req.haystack_manager.search(params);
-        res.status(200).send(haystacks);
+        var stacks = req.stack_manager.search(params);
+        res.status(200).send(stacks);
     }
     catch (ex) {
         res.status(401).send(ex);
@@ -47,9 +47,9 @@ router.get('/:identifier', function (req, res) {
     try
     {
         var identifier = req.params.identifier;
-        var haystack = req.haystack_manager.load(identifier);
+        var stack = req.stack_manager.load(identifier);
 
-        res.status(200).send(haystack);
+        res.status(200).send(stack);
     }
     catch (ex) {
         res.status(401).send(ex);
@@ -71,10 +71,10 @@ router.post('/', function (req, res) {
         var path = params.stack_file_location;
 
 
-        var haystack = req.haystack_manager.create_from_path(path, params);
-        haystack.start();
+        var stack = req.stack_manager.create_from_path(path, params);
+        stack.start();
 
-        res.status(200).send(haystack.getData());
+        res.status(200).send(stack.getData());
 
 
 
@@ -100,12 +100,12 @@ router.delete('/:identifier', function (req, res) {
 
     try
     {
-        var haystack = req.haystack_manager.load(identifier);
+        var stack = req.stack_manager.load(identifier);
 
-        console.log(haystack);
+        console.log(stack);
 
-        haystack.terminate();
-        res.status(200).send(haystack.getData());
+        stack.terminate();
+        res.status(200).send(stack.getData());
     }
     catch (ex){
         res.status(401).send(ex);

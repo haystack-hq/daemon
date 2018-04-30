@@ -12,13 +12,13 @@ var StackController = require('./api/controllers/stack-controller');
 
 
 
-var WebServer = function (port, haystack_manager) {
+var WebServer = function (port, stack_manager) {
     var self = this;
-    this.haystack_manager = haystack_manager;
+    this.stack_manager = stack_manager;
     this.port = port;
 
     expressApp.use('/stacks',  (req, res, next) => {
-        req.haystack_manager = this.haystack_manager;
+        req.stack_manager = this.stack_manager;
         next();
     }, StackController);
 
