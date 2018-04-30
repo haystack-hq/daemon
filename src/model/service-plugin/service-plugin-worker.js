@@ -16,6 +16,11 @@ var logger = {
     }
 }
 
+
+var status_update_callback = function(obj){
+    process.send({action: "status-update", state:"success", data: obj});
+}
+
 process.on('message', function(m) {
 
     var params = m.params;
@@ -30,7 +35,7 @@ process.on('message', function(m) {
             //load a plugin
             plugin = new ServicePlugin(params.service.service_name, params.plugin.path);
             var provider =  plugin.getProvider(params.service.service_info.provider, params.mode);
-            service_plugin_provider = new ServicePluginProvider(params.stack, params.service, plugin, provider, logger);
+            service_plugin_provider = new ServicePluginProvider(params.stack, params.service, plugin, provider, logger, status_update_callback);
             process.send({action: "load", state:"success", data: { service_name: service_name }});
 
 
@@ -43,6 +48,27 @@ process.on('message', function(m) {
 
 
     }
+
+    else if(m.action == "status-update"){
+
+        console.log("updating the status");
+
+        try
+        {
+            service_plugin_provider.status = m.params.status;
+            process.send({action: "status-update", state:"success", data: { service_name: service_name }});
+
+
+        }
+        catch(err)
+        {
+            console.log("err from service-plugin-worker", err);
+            process.send({action: "load", state:"fail", data: err});
+        }
+
+
+    }
+
     else
     {
         //todo: validate that it is in the action list

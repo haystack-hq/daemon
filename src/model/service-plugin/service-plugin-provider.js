@@ -2,14 +2,16 @@
 
 var Logger = require("../../../src/lib/logger");
 var ServicePluginLib = require("./service-plugin-lib");
+var HaystackService = require("../haystack/haystack-service");
 var Promise = require('bluebird');
 
 var _heartbeat = null;
+var _heartbeat_interval = 2000;
 var _setInterval = setInterval;
 var _clearInterval = clearInterval;
 
 
-var ServicePluginProvider = function(stack, service, plugin, provider, logger){
+var ServicePluginProvider = function(stack, service, plugin, provider, logger, status_update_callback){
     Logger.log('debug', 'Init ServicePluginProvider [' + plugin.id + '] of ['+ provider.id + ']');
 
 
@@ -17,6 +19,10 @@ var ServicePluginProvider = function(stack, service, plugin, provider, logger){
 
     //stack
     this.stack = stack;
+
+
+    //update callback
+    this.status_update_callback = status_update_callback;
 
 
 
@@ -149,21 +155,33 @@ ServicePluginProvider.prototype.implement_provider_optional_actions = function()
 
 ServicePluginProvider.prototype.implement_heartbeat = function(){
 
-
     if(this.provider_instance.heartbeat){
 
         _heartbeat = _setInterval(() => {
-            this.provider_instance.heartbeat((result) => {
-                Logger.log('silly', "Heartbeat for service [" + this.service.service_name + "] resolved.");
-            }, function(err){
-                Logger.log('silly', "Heartbeat for service [" + this.service.service_name + "] failed. Error: [" + err + "].");
 
-                this.service.status = HaystackService.Statuses.impaired;
-                this.service.error = err;
-                //todo: update the service impared.
+            if(this.service.status == HaystackService.Statuses.running || this.service.status == HaystackService.Statuses.impaired){
 
-            });
-        }, 2000);
+                this.provider_instance.heartbeat((result) => {
+
+                    this.status_update_callback({
+                        status: HaystackService.Statuses.running,
+                        error: null
+                    })
+
+                }, (err) => {
+                    this.service.status = HaystackService.Statuses.impaired;
+                    this.service.error = err;
+
+                    //send this status back to the service.
+                    this.status_update_callback({
+                        status: this.service.status,
+                        error: this.service.error
+                    });
+                });
+            }
+
+
+        }, _heartbeat_interval);
 
 
     }
@@ -171,7 +189,7 @@ ServicePluginProvider.prototype.implement_heartbeat = function(){
 
 
 
-
+    /* still used?
     this.heartbeat = function(){
         return new Promise((resolve, reject)  => {
 
@@ -193,6 +211,7 @@ ServicePluginProvider.prototype.implement_heartbeat = function(){
 
         });
     }
+    */
 
 
 

@@ -37,9 +37,7 @@ StackLogger.prototype.log = function(level, msg, meta){
     if(this.service_name){
         entry.service = this.service_name
     }
-
     fs.appendFileSync(this.log_path, JSON.stringify(entry) + os.EOL);
-    
 }
 
 

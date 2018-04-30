@@ -12,17 +12,27 @@ var StackLogger = require("./logger");
 
 
 
-var HaystackService = function(stack, mode, service_name, service_info){
+var HaystackService = function(stack,  service_name, service_data, service_info){
 
     //set some default properties
     this.stack = stack;
     this.service_name = service_name;
-    this.mode = mode;
+    this.mode = stack.mode;
     this.service_info = service_info;
-    this.updateStatus(HaystackService.Statuses.pending);
     this.plugin = null;
     this.error = null;
     this.logger =  new StackLogger(stack.identifier,  this.service_name);
+    this.status = HaystackService.Statuses.pending;
+
+    console.log("service info man", service_info);
+
+
+    //load the services data passed in.
+    if(service_data)
+    {
+        this.status = service_data.status;
+        this.error = service_data.error;
+    }
 
 
     this.provider_promises = [];
@@ -103,7 +113,7 @@ HaystackService.prototype.load = function(){
             {
                 stack: {identifier: this.stack.identifier},
                 mode: this.mode,
-                service: {service_name: this.service_name, service_info: this.service_info },
+                service: {service_name: this.service_name, status: this.status, service_info: this.service_info },
                 plugin: { path:plugin_path }
             },
             (result) => {
@@ -133,6 +143,14 @@ HaystackService.prototype.receive_provider_message = function(m){
 
     if(action == "uncaught-exception"){
         this.updateStatus(HaystackService.Statuses.impaired, m.data);
+        return;
+    }
+
+
+    /* log to service */
+    if(action == "status-update"){
+        var data = m.data;
+        this.updateStatus(data.status, data.error);
         return;
     }
 
@@ -353,6 +371,24 @@ HaystackService.prototype.updateStatus = function(status, error_msg){
     }
 
     this.status = status;
+
+
+    //send a message to the provider:
+    this.send_provider_message("status-update",
+        {
+            status: this.status
+        },
+        (result) => {
+            console.log("status-update success from the thread [" + this.service_name + "]", result)
+        },
+        (err) => {
+            console.log("status-update error from the thread [" + this.service_name + "]", err)
+        }
+    );
+
+
+
+
     this.stack.refresh();
 }
 

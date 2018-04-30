@@ -8,6 +8,8 @@ var Provider = function(service, haystack){
     this.shell = haystack.shell;
     this.logger = haystack.logger;
 
+    this.service = service;
+
 }
 
 /* required implemented methods */
@@ -34,6 +36,7 @@ Provider.prototype.start = function(done, err){
         }
 
 
+
         done();
     }
     catch(ex){
@@ -42,6 +45,7 @@ Provider.prototype.start = function(done, err){
 
 
 }
+
 
 Provider.prototype.stop = function(done, err){
     done(true);
@@ -88,9 +92,17 @@ Provider.prototype.terminate = function(done, err){
 
 }
 
+Provider.prototype.heartbeat = function(done, err){
+
+    //ping the container.
+    
+
+
+    console.log("pulse");
+    done();
+}
+
 Provider.prototype.inspect = function(done, err){
-
-
 
     done({
         key: "value"

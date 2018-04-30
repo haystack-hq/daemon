@@ -57,10 +57,19 @@ var Haystack = function(data){
 
         //todo: resort services by dependencies.
 
+        var services_data = data.services;
+        console.log("services_data", services_data);
+
         this.services = [];
         Object.keys(this.haystack_file.services).forEach((key) => {
+
+            var service_data = null;
+            if(data.services && data.services[key]){
+                service_data = data.services[key];
+            }
+
             var service_info = this.haystack_file.services[key];
-            var haystack_service = new HaystackService(this, HaystackService.Modes.local, key, service_info);
+            var haystack_service = new HaystackService(this, key, service_data, service_info);
             this.services.push(haystack_service);
         });
 
@@ -73,15 +82,6 @@ var Haystack = function(data){
     return this;
 }
 
-
-
-Haystack.prototype._setData = function(data){
-
-
-
-
-    return this;
-}
 
 
 
