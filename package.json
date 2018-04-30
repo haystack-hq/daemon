@@ -1,7 +1,7 @@
 {
-  "name": "haystack-agent",
+  "name": "haystack-daemon",
   "version": "1.0.0",
-  "description": "Haystack agent",
+  "description": "Haystack Daemon",
   "main": "index.js",
   "scripts": {
     "test": "mocha --recursive"
@@ -28,7 +28,6 @@
     "jsuck": "0.0.5",
     "moment": "^2.21.0",
     "shelljs": "^0.8.1",
-    "shelljs": "^0.8.2",
     "winston": "^3.0.0-rc4",
     "ws": "^5.0.0"
   }

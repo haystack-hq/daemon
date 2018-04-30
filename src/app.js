@@ -14,8 +14,6 @@ var db = require('./model/db/db-conn');
 
 
 
-
-
 var App = function(){
 
     this.config_path = path.join( process.env.HOME , '.haystack/config.json');
