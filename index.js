@@ -1,4 +1,4 @@
-var App = require('./app');
+var App = require('./src/app');
 
 //init app
 var app = new App();
