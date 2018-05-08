@@ -1,0 +1,8 @@
+{
+  "image": "tutum/hello-world",
+  "ports": [
+    {
+      "@@http_port":80
+    }
+  ]
+}

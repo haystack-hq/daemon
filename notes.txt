@@ -58,3 +58,26 @@ HaystackService runs action (start, stop, terminate, etc)
 
 
 
+
+
+#rules of haystack.
+1. services can be mixed and matched within the haystack
+2. haystack files are json/yml files
+
+
+plugins:
+provider plugin directory
+service plugin directory
+
+apps
+magento
+laravel
+pylons
+
+
+
+
+
+
+
+

@@ -1,0 +1,19 @@
+{
+  "name": "docker-container",
+  "provider": "docker",
+  "script": "index.js",
+  "parameters": [
+    {
+      "id": "image",
+      "type": "string"
+    },
+    {
+      "id": "ports",
+      "type": "list"
+    }
+  ]
+}
+
+
+
+

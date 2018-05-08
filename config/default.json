@@ -1,5 +1,8 @@
 {
   "stacks": {
-      "terminated_remove_after": 5
+      "terminated_remove_after": 5,
+      "default_networks": {
+        "docker": "docker-bridge"
+      }
   }
 }

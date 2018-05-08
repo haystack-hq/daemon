@@ -1,0 +1,11 @@
+{
+  "services": {
+    "my-hello-world-app": {
+      "plugin": "hello-world",
+      "parameters": {
+        "http_port": 4019,
+        "src": "./mycode"
+      }
+    }
+  }
+}

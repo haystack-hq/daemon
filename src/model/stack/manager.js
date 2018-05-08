@@ -14,32 +14,40 @@ var findup = require('findup-sync');
 
 
 var StackManager = function(db) {
-
-
     this.db = db;
     this.stacks = []; //store a list of stacks that have been loaded into the application.
 }
 
 
-StackManager.prototype.create_from_path = function(path, params){
+StackManager.prototype.load_from_path = function(stack_file_location, identifier, provider_id, mode){
+
+    var data = {
+        stack_file_location: stack_file_location,
+        identifier: identifier,
+        provider_id: provider_id,
+        mode: mode
+    }
+
 
     // /validate that the haystack file exists
-    if(!StackManager.FindStackFilePath(params.stack_file_location)){
-        throw ("Haystackfile does not exists at '" + path + "'.");
+    if(!StackManager.FindStackFilePath(data.stack_file_location)){
+        throw new Error("Haystackfile does not exists at '" + data.stack_file_location + "'.");
     }
     else
     {
-        params.stack_file_location = StackManager.FindStackFilePath(params.stack_file_location);
+        data.stack_file_location = StackManager.FindStackFilePath(data.stack_file_location);
     }
 
-    if(!params.identifier){
+
+
+    if(!data.identifier){
         //generate an identifier.
-        params.identifier = StackManager.GenerateIdentifierFromPath(path);
+        data.identifier = StackManager.GenerateIdentifierFromPath(stack_file_location);
     }
 
 
     //check to see if this stack exists.
-    var records = this.search({identifier: params.identifier});
+    var records = this.search({identifier: data.identifier});
 
 
     //remove and terminated cat be deleted.
@@ -50,27 +58,26 @@ StackManager.prototype.create_from_path = function(path, params){
     });
 
     //check again to see if we can proceed.
-    var results = this.search({identifier: params.identifier});
+    var results = this.search({identifier: data.identifier});
 
 
 
     if(results.length > 0){
-        throw ("Cannot create stack. There is already a stack with the id '" + params.identifier + "'.");
+        throw new Error("Cannot create stack. There is already a stack with the id '" + data.identifier + "'.");
     }
 
 
     //check to see if there is a stack with the path provided.
-    var results = this.search({stack_file_location: params.stack_file_location});
+    var results = this.search({stack_file_location: data.stack_file_location});
     if(results.length > 0){
-        throw ("Cannot create stack. There is already a stack at path '" + params.stack_file_location + "'.");
+        throw new Error("Cannot create stack. There is already a stack at path '" + data.stack_file_location + "'.");
     }
 
 
     //create the new stack
-    var stack = new Stack(params);
-    stack.save();
-
+    var stack = new Stack(data);
     this.stacks.push(stack);
+
 
     return stack;
 
@@ -82,7 +89,7 @@ StackManager.prototype.load = function(identifier){
     var stack = null;
 
     if(!identifier){
-        throw("Haystack Identifier required.")
+        throw new Error("Haystack Identifier required.")
     }
 
     //look for the stack in memory first.
@@ -108,7 +115,7 @@ StackManager.prototype.load = function(identifier){
     if(!stack)
     {
         //if I am here the haystack with the identifier could not be found.
-        throw("Haystack with identifier [" + identifier + "] could not be found.");
+        throw new Error("Haystack with identifier [" + identifier + "] could not be found.");
     }
 
 
@@ -136,7 +143,7 @@ StackManager.prototype.load_from_db = function(identifier){
         }
         else
         {
-            throw("Haystack Identifier required.");
+            throw new Error("Haystack Identifier required.");
         }
     }
     catch (ex){

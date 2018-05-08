@@ -1,0 +1,20 @@
+{
+  "name": "hello-world",
+  "version": "0.1",
+  "providers": {
+    "docker": {
+      "module": "docker-container",
+      "config": "docker/config.json"
+    }
+  },
+  "parameters": [
+    {
+      "id": "http_port",
+      "type": "integer"
+    },
+    {
+      "id": "src",
+      "type": "string"
+    }
+  ]
+}

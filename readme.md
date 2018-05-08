@@ -59,3 +59,17 @@ High level messages about the actions that Haystack is performing.
 Detailed infromation about the data witihn the method calls.
 
 
+
+
+
+
+
+
+hs start -m local -e dev
+hs start -e dev
+hs start
+
+
+
+
+

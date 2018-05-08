@@ -1,0 +1,5 @@
+{
+  "name": "docker-bridge",
+  "provider": "docker",
+  "interface": "index.js"
+}

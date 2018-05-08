@@ -1,0 +1,5 @@
+{
+  "id": "docker",
+  "modes": ["local"],
+  "default_network": "docker-bridge"
+}
