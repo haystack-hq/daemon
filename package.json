@@ -27,12 +27,12 @@
     "homedir": "^0.6.0",
     "jsonschema": "^1.2.4",
     "jsuck": "0.0.5",
-    "moment": "^2.21.0",
+    "moment": "^2.22.1",
     "path": "^0.12.7",
     "pattern-replace": "^0.1.2",
-    "shelljs": "^0.8.1",
+    "shelljs": "^0.8.2",
     "uniqid": "^4.1.1",
-    "winston": "^3.0.0-rc4",
+    "winston": "^3.0.0-rc5",
     "ws": "^5.0.0"
   }
 }

@@ -22,6 +22,10 @@ Thread.prototype.receive = function(m){
     var msg = this.messages[m.id];
     if(m.state == "success"){
         msg.success(m.data);
+
+        if(m.method == "terminate"){
+            this.exit();
+        }
     }
     else
     {
@@ -45,6 +49,10 @@ Thread.prototype.call = function(method, data, on_success, on_fail){
     //send it
     this.process.send(message);
 
+}
+
+Thread.prototype.exit = function(){
+    this.process.kill();
 }
 
 

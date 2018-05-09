@@ -50,7 +50,7 @@ describe('stack', function() {
                 done(err);
             });
 
-        function cleanup(){
+        function cleanup() {
             stack_controller.terminate().then((result) => {
                 done();
             }).catch((err) => {

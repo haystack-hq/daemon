@@ -50,7 +50,9 @@ ServiceInterface.prototype.implement_commands = function(){
 
                 /* calls the module thread */
                this.module_interface.call(cmd, {},
-                   (result) => { resolve(result); },
+                   (result) => {
+                       resolve(result);
+                   },
                    (err) => { reject(err); });
 
            });
