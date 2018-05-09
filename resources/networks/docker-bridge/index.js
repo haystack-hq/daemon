@@ -65,8 +65,8 @@ Provider.prototype._validate = function(){
     }
 
     var version = this.shell.exec("docker version --format '{{.Server.Version}}'", {silent:true}).stdout;
-    var ok = this.helper.CompareVersions(version.trim(), min_version, {lexicographical: true , zeroExtend: true});
-    if(ok !== 1)
+    var ok = this.helper.CompareVersions(version.trim(), min_version);
+    if(ok < 0)
     {
         return "The minimum version of docker is [" + min_version + "]. Your version is [" + version + "]. Please upgrade."
     }
