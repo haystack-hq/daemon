@@ -18,8 +18,12 @@ var StackInterface = function(stack){
 
     /* network */
     var network_ref = null; //todo: get newtork from stack file. For now we are using the defaults.
-    this.network = NetworkManager.LoadNetwork(network_ref, this.stack.provider.id);
-    this.network.init(this.stack.identifier);
+    this.stack.network = {
+        name: "haystack-" + this.stack.identifier
+    }
+    this.network = NetworkManager.LoadNetwork(network_ref, this.stack);
+    this.network.init(this.stack);
+
 
     /* services. */
     this.services = [];
@@ -37,18 +41,52 @@ StackInterface.prototype.start = function() {
         //start the network
         this.network.start().then((result) => {
 
-            /* start each of the services */
-            Promise.mapSeries(this.services, function(service){
+            var counter = 0;
+
+            Promise.mapSeries(this.services, (service) => {
                 return service.start();
             }).then((res) => {
-                resolve(res);
+                resolve();
+
             }).catch((err) =>{
                 reject(err);
             });
 
+
         }).catch((err) => {
             reject(err);
+        })
+
+
+
+    });
+}
+
+
+StackInterface.prototype.terminate = function() {
+
+    return new Promise((resolve, reject)  => {
+
+        var counter = 0;
+
+        //terminate each of the services.
+        Promise.mapSeries(this.services, (service) => {
+            return service.terminate();
+        }).then((res) => {
+            //terminate the network
+            this.network.terminate().then((result) => {
+                resolve();
+            }).catch((err) => {
+                reject(err);
+            });
+
+        }).catch((err) =>{
+            reject(err);
         });
+
+
+
+
 
 
 

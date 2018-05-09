@@ -10,8 +10,6 @@ var appRoot = require('app-root-path');
 
 var Interface = function(args) {
 
-    console.log("network.interface", args);
-
     this.stack = args.stack;
     this.path_to_interface = args.path_to_interface
 
@@ -46,7 +44,7 @@ Interface.prototype.init = function() {
 Interface.prototype.implement_methods = function() {
     Network.Commands.Required.forEach((cmd) => {
         this[cmd] = (resolve, reject) => {
-            console.log("module.interface", "method called", cmd);
+            console.log("network.interface", "method called", cmd);
             this.network[cmd]((result) => {  resolve(result); }, (err) => { reject(err); });
         }
     });

@@ -25,11 +25,30 @@ var Controller = function(stack){
 Controller.prototype.start = function(){
     this.stack.update_status(Stack.Statuses.starting);
 
-
     return new Promise((resolve, reject)  => {
         this.interface.start()
             .then((result) => {
                 this.stack.update_status(Stack.Statuses.running);
+                resolve(result);
+            }).catch((err) => {
+                this.stack.update_status(Stack.Statuses.impaired, err);
+                reject(err);
+            });
+    });
+
+
+
+}
+
+
+
+Controller.prototype.terminate = function(){
+    this.stack.update_status(Stack.Statuses.terminating);
+
+    return new Promise((resolve, reject)  => {
+        this.interface.terminate()
+            .then((result) => {
+                this.stack.update_status(Stack.Statuses.terminated);
                 resolve(result);
             }).catch((err) => {
                 this.stack.update_status(Stack.Statuses.impaired, err);

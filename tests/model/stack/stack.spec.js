@@ -8,10 +8,13 @@ var appRoot = require('app-root-path');
 var fs = require("fs-extra");
 var path = require('path');
 var chai = require('chai');
+var shell = require('shelljs');
 var expect = chai.expect;
 var assert = chai.assert;
 
 describe('stack', function() {
+
+    var stack_identifier = "hello-world";
 
     var stack_manager = null;
 
@@ -27,23 +30,34 @@ describe('stack', function() {
     });
 
     it("should load a stack", function(done){
-        var project_path = path.join(appRoot.resolve("."), "resources", "stacks", "hello-world");
+        var project_path = path.join(appRoot.resolve("."), "resources", "stacks", stack_identifier);
         var stack = stack_manager.load_from_path(project_path, null, "docker", Stack.Modes.local);
         done();
     });
 
 
-    it("should start a stack", function(done){
-        var project_path = path.join(appRoot.resolve("."), "resources", "stacks", "hello-world");
+    it("should start and stop a stack", function(done){
+
+        this.timeout(30000);
+
+        var project_path = path.join(appRoot.resolve("."), "resources", "stacks", stack_identifier);
         var stack = stack_manager.load_from_path(project_path, null, "docker", Stack.Modes.local);
-        var controller = new Controller(stack);
-        controller.start()
+        var stack_controller = new Controller(stack);
+        stack_controller.start()
             .then((result) => {
+                cleanup();
+            }).catch((err) => {
+                done(err);
+            });
+
+        function cleanup(){
+            stack_controller.terminate().then((result) => {
                 done();
             }).catch((err) => {
                 done(err);
             });
 
+        }
 
 
     });

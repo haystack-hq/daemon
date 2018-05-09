@@ -16,21 +16,24 @@ var Network = function(path_to_network) {
     }
     catch (ex)
     {
-        throw new Error("Unable to locate the network [" + path_to_network + "].");
+        throw new Error("Unable to locate the network [" + path_to_network + "]. ");
     }
 
 
 
 }
 
-Network.prototype.init = function(stack_id){
+Network.prototype.init = function(stack){
 
     this.network_interface = new Thread(
         path.join(__dirname, "../network/interface.js"),
         {
             path_to_interface: this.path_to_interface,
             stack: {
-                identifier: stack_id
+                identifier: stack.identifier,
+                network: {
+                    name: stack.network.name
+                }
             }
         }
     );
@@ -43,11 +46,10 @@ Network.prototype.init = function(stack_id){
 /* implement methods */
 Network.prototype.implement_methods = function(){
     Network.Commands.Required.forEach((cmd) => {
-        console.log("network.interface", "method created", cmd);
 
         this[cmd] = () => {
             return new Promise((resolve, reject)  => {
-                console.log("network.interface", "method called", cmd);
+                console.log("network", "method called", cmd);
 
                 this.network_interface.call(cmd, {},
                     (result) => { resolve(result); },
@@ -61,7 +63,7 @@ Network.prototype.implement_methods = function(){
 
 
 Network.Commands = {
-    Required: ["start", "stop", "inspect"]
+    Required: ["start", "terminate", "inspect"]
 }
 
 module.exports = Network;

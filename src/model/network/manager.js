@@ -12,8 +12,8 @@ var Manager = function(){
 
 }
 
-Manager.LoadNetwork = function(network_ref, provider_id){
-    var path_to_network = Manager.GetPathToNetwork(network_ref, provider_id);
+Manager.LoadNetwork = function(network_ref, stack){
+    var path_to_network = Manager.GetPathToNetwork(network_ref, stack.provider.id);
 
     return new Network(path_to_network);
 }

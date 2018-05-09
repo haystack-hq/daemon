@@ -13,7 +13,24 @@ var ServiceInterface = function(service_id, data, stack){
 
 
     //create this interface to the module class, which will load and run the module.
-    this.module_interface = new Thread( path.join(__dirname, "../../../module/interface.js"), {stack: {identifier: this.stack.identifier}, service: { id: this.service_id }, path_to_module: this.plugin.path_to_module, provider: {id: this.stack.provider.id }, service_config: this.plugin.provider_config, network_ref: null  } );
+    this.module_interface = new Thread(
+        path.join(__dirname, "../../../module/interface.js"),
+        {
+            stack: {
+                identifier: this.stack.identifier,
+                network: {
+                    name: this.stack.network.name
+                }
+            },
+            service: {
+                id: this.service_id
+            },
+            path_to_module: this.plugin.path_to_module,
+            provider: {
+                id: this.stack.provider.id
+            },
+            service_config: this.plugin.provider_config
+        });
 
 
     this.implement_commands();
@@ -24,10 +41,8 @@ var ServiceInterface = function(service_id, data, stack){
 /* implement all required commands */
 ServiceInterface.prototype.implement_commands = function(){
     Stack.Commands.Required.forEach((cmd) => {
-       console.log("interface.local.service", "method created", cmd);
 
        this[cmd] =  () => {
-
            console.log("interface.local.service", "method ran", cmd);
 
            /* return a promise to the stack */

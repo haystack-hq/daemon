@@ -8,7 +8,6 @@ var appRoot = require('app-root-path');
 
 var Module = function(args) {
 
-    console.log("module.interface", args);
 
     this.stack = args.stack;
     this.service_id = args.service.id,
@@ -31,7 +30,6 @@ Module.prototype.init = function(){
 
     /* add additional libs */
     Autoload.GetLibs().forEach((lib) => {
-        console.log('debug', 'Autoloaded haystack.lib.' + lib.name );
         var D = require(lib.path);
         haystack[lib.name] = new D();
     });
@@ -40,7 +38,15 @@ Module.prototype.init = function(){
 
     //load up the module.
     var M = require(this.module_path);
-    this.module = new M({config: this.service_config, network: this.network, haystack: haystack});
+    this.module = new M( {
+        stack: this.stack,
+        service: {
+            id: this.service_id,
+            config: this.service_config
+        },
+        network: this.network,
+        haystack: haystack
+    });
 
 
     this.implement_methods();
@@ -51,7 +57,6 @@ Module.prototype.init = function(){
 /* implement methods */
 Module.prototype.implement_methods = function(){
     Stack.Commands.Required.forEach((cmd) => {
-        console.log("module.interface", "method created", cmd);
         this[cmd] = (resolve, reject) => {
             console.log("module.interface", "method called", cmd);
             this.module[cmd]((result) => {  resolve(result); }, (err) => { reject(err); });
