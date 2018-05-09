@@ -10,7 +10,8 @@ var Provider = function(args){
 
 
 Provider.prototype.start = function(done, err){
-    if( this._validate() != true){
+    var result = this._validate();
+    if( result != true){
         err(result);
     }
 
@@ -27,7 +28,8 @@ Provider.prototype.start = function(done, err){
 
 
 Provider.prototype.terminate = function(done, err){
-    if( this._validate() != true){
+    var result = this._validate();
+    if( result != true){
         err(result);
     }
 
