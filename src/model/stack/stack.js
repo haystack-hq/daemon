@@ -193,11 +193,6 @@ Stack.Commands = {
     Optional: ["ssh"]
 }
 
-Stack.Service = {
-    CommandToStatus: {
-
-    }
-}
 
 
 module.exports = Stack;

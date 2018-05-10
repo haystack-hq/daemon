@@ -24,14 +24,19 @@ Interface.prototype.validate = function(done, err){
 Interface.prototype.start = function(done, err){
     var config = this.service.config;
 
-    this.logger.log("info", "module-started",  {module: "docker-container", service:  this.service });
+    this.logger.log("info", "module-started",  {module: "docker-container", service: this.service });
 
     //pull the image.
     var pull_command = "docker pull " + config.image;
-    this.logger.log("info", "pulling-docker-image",  {command:  pull_command });
+    this.logger.log("info", "pulling-docker-image",    pull_command );
     var pull_result = this.shell.exec(pull_command, {silent:true});
     if(pull_result.code !== 0) {
         err("Unable to pull the docker image [" + config.image + "].");
+        return;
+    }
+    else
+    {
+        this.logger.log("info", "pulling-docker-image-complete",   pull_result.stdout );
     }
 
     //get the ports.
@@ -44,15 +49,29 @@ Interface.prototype.start = function(done, err){
         });
     }
 
+    //make a volume
+    var project_src =  this.service.data.path_to_src ;
+    var volume = "";
+    if(project_src != null)
+    {
+        volume = " -v " + project_src + ":/www ";
+    }
+
+
     //run the container.
-    var run_command = "docker run -d " + cmd_args_ports + " --net " + this.network.name + " --name  " + this.container_name + " " + config.image + "  ";
+    this.logger.log("info", "running-docker-container",   run_command );
+    var run_command = "docker run -d " + cmd_args_ports + " " + volume + " --net " + this.network.name + " --name  " + this.container_name + " " + config.image + "  ";
     var run_result = this.shell.exec(run_command, {silent:true});
     if(run_result.code !== 0) {
         err("Unable to start the docker container  [" + this.container_name + "]. " + run_result.stderr);
-
+        return;
+    }
+    else
+    {
+        this.logger.log("info", "running-docker-container-complete", run_result.stdout );
     }
 
-    this.logger.log("info", "running-docker-container",  {command:  run_command });
+
 
     done();
 }
@@ -62,6 +81,20 @@ Interface.prototype.stop = function(done, err){
 }
 
 Interface.prototype.inspect = function(done, err){
+
+
+    var inspect_command = "docker inspect " + this.container_name;
+    var inspect_result = this.shell.exec(inspect_command, {silent:true});
+
+    if(inspect_result.code === 0 )
+    {
+        var inspect = JSON.parse(inspect_result.stdout);
+        done(inspect[0]);
+    }
+    else
+    {
+        err(inspect_result.stderr);
+    }
 
 }
 
@@ -77,13 +110,15 @@ Interface.prototype.terminate = function(done, err){
 
 
     //validate that the container is removed. Expect an error.
-    var check_command = "docker inspect " + this.container_name;
+    var check_command = "docker inspect" + this.container_name;
     var check_result = this.shell.exec(check_command, {silent:true});
     if(check_result.code === 0 )
     {
         err("Unable to terminate the docker container  [" + this.container_name + "]. " + run_result.stderr);
         return;
     }
+
+
 
     done();
 
@@ -105,7 +140,7 @@ Interface.prototype.healthcheck = function(done, err){
     var inspect = JSON.parse(check_result.stdout);
     var state = inspect[0].State;
     if(state.Running == false){
-        err("Docker Container is not running. Docker container status [" + state.Status + "] ");
+        err("Docker Container is not running. Docker container status [" + state.Status + "].");
         return;
     }
 

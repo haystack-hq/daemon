@@ -2,16 +2,16 @@
   "services": {
     "my-hello-world-app": {
       "plugin": "hello-world",
+      "src": "./",
       "parameters": {
-        "http_port": 4018,
-        "src": "./"
+        "http_port": 4018
       }
     },
     "my-hello-world-app-2": {
       "plugin": "hello-world",
+      "src": "./",
       "parameters": {
-        "http_port": 4019,
-        "src": "./"
+        "http_port": 4019
       }
     }
   }

@@ -50,7 +50,6 @@ Controller.prototype.start = function(){
 }
 
 
-
 Controller.prototype.terminate = function(){
     this.stack.update_status(Stack.Statuses.terminating);
 
@@ -63,6 +62,20 @@ Controller.prototype.terminate = function(){
                 resolve(result);
             }).catch((err) => {
                 this.stack.update_status(Stack.Statuses.impaired, err);
+                reject(err);
+            });
+    });
+
+}
+
+
+Controller.prototype.inspect = function(service_id){
+
+    return new Promise((resolve, reject)  => {
+        this.interface.inspect(service_id)
+            .then((result) => {
+                resolve(result);
+            }).catch((err) => {
                 reject(err);
             });
     });

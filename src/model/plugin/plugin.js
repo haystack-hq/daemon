@@ -31,6 +31,18 @@ var Plugin = function(path_to_plugin, plugin_ref) {
     this.version = this.manifest.version;
     this.providers = this.manifest.providers;
     this.parameters = this.manifest.parameters;
+    this.src = this.manifest.src;
+
+    /* path to the plugins srource code */
+    if(this.src){
+        this.path_to_src = path.join(this.path_to_plugin, this.src);
+    }
+
+
+    /* path to the plugins mount */
+    if(this.manifest.mount){
+        this.mount = this.manifest.mount;
+    }
 
 
 }
@@ -48,6 +60,7 @@ Plugin.prototype.init = function(provider_id, vars){
 
     //replace variables
     this.provider_config = this._replace_variables(vars);
+
 
     //get the path to the plugins module.
     this.path_to_module = ModuleManager.GetPathToModule(provider_data.module);

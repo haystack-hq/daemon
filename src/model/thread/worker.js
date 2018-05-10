@@ -20,14 +20,11 @@ var Worker = function(process){
 
     this.process.on('message', (m) => {
 
-
-
         //validate method is implemented
         if(!this.obj[m.method]){
             this.reply(m.id, m.method, "fail", "Method [" + m.method + "] not implemented.");
             return;
         }
-
 
         //convert the message into a method call.
         this.obj[m.method](

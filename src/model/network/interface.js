@@ -10,8 +10,10 @@ var appRoot = require('app-root-path');
 
 var Interface = function(args) {
 
-    this.stack = args.stack;
-    this.path_to_interface = args.path_to_interface
+    this.data = {
+        stack: args.stack,
+        path_to_interface: args.path_to_interface
+    }
 
     this.init();
 
@@ -22,19 +24,19 @@ Interface.prototype.init = function() {
 
     //provide some libraries for easy access.
     var haystack = {};
-    haystack.logger = new StackLogger(this.stack.identifier, this.service_id);
+    haystack.logger = new StackLogger(this.data.stack.identifier);
 
 
     /* add additional libs */
     Autoload.GetLibs().forEach((lib) => {
         console.log('debug', 'Autoloaded haystack.lib.' + lib.name );
         var D = require(lib.path);
-        haystack[lib.name] = new D();
+        haystack[lib.name] = new D(this.data);
     });
 
     //load up the module.
-    var N = require(this.path_to_interface);
-    this.network = new N({stack: this.stack, haystack: haystack});
+    var N = require(this.data.path_to_interface);
+    this.network = new N({stack: this.data.stack, haystack: haystack});
 
 
     this.implement_methods();

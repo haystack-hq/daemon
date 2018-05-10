@@ -15,6 +15,15 @@ var ServiceInterface = function(service_id, service, data, stack, event_emiiter)
     this.plugin.init(this.stack.provider.id, this.data.parameters);
 
 
+    //get the path to the src
+    if(this.data.src){
+        this.data.path_to_src = path.join(path.dirname(this.stack.stack_file_location), this.data.src);
+    }
+    else
+    {
+        this.data.path_to_src = null;
+    }
+
     //create this interface to the module class, which will load and run the module.
     this.module_interface = new Thread(
         path.join(__dirname, "../../../module/interface.js"),
@@ -26,13 +35,14 @@ var ServiceInterface = function(service_id, service, data, stack, event_emiiter)
                 }
             },
             service: {
-                id: this.service_id
+                id: this.service_id,
+                config: this.plugin.provider_config,
+                data: this.data,
+                plugin: this.plugin
             },
-            path_to_module: this.plugin.path_to_module,
             provider: {
                 id: this.stack.provider.id
-            },
-            service_config: this.plugin.provider_config
+            }
         });
 
 

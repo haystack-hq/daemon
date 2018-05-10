@@ -59,6 +59,36 @@ router.get('/:identifier', function (req, res) {
 });
 
 
+
+/* inspect a stack */
+router.get('/:identifier/:service/inspect', function (req, res) {
+    //return just the one stack
+    try
+    {
+        var identifier = req.params.identifier;
+        var service = req.params.service;
+
+        var stack = req.stack_manager.load(identifier);
+        var stack_controller = new StackController(stack);
+
+
+        stack_controller.inspect(service).then(
+            (result) => {
+                res.status(200).send(result);
+            }).catch((err) => {
+                res.status(401).send(err);
+            });
+
+
+    }
+    catch (ex) {
+        res.status(401).send(ex);
+    }
+
+
+});
+
+
 /* create a new stack */
 router.post('/', function (req, res) {
     var identifier = null;

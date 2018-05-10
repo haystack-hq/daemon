@@ -81,5 +81,36 @@ StackInterface.prototype.terminate = function() {
 }
 
 
+StackInterface.prototype.inspect = function(service_id) {
+
+    return new Promise((resolve, reject)  => {
+
+        var service = null;
+
+        this.services.forEach((s) => {
+            if(s.service_id == service_id){
+                service = s;
+            }
+        });
+
+
+        if( service != null ){
+            service.inspect().then(
+                (result) => {
+                    resolve(result);
+                }).catch((err) => {
+                    reject(err);
+                });
+        }
+        else
+        {
+            reject("Unable to inspect [" + service_id + "]. The service could not be found ");
+        }
+
+
+    });
+}
+
+
 
 module.exports = StackInterface;

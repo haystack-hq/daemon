@@ -44,5 +44,10 @@ StackLogger.prototype.log = function(level, msg, meta){
 }
 
 
+StackLogger.prototype.error = function(msg, meta){
+    this.log("error", msg, meta);
+}
+
+
 
 module.exports = StackLogger;
