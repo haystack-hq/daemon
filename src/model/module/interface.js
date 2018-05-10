@@ -5,6 +5,7 @@ var Stack = require("../stack/stack");
 var Autoload = require("../../lib/autoload");
 var StackLogger = require("../stack/logger");
 var appRoot = require('app-root-path');
+var config = require("config");
 
 var Module = function(args) {
 
@@ -51,17 +52,31 @@ Module.prototype.init = function(){
 
     this.implement_methods();
 
+
+
 }
 
 
 /* implement methods */
 Module.prototype.implement_methods = function(){
-    Stack.Commands.Required.forEach((cmd) => {
+
+    /* required methods */
+    Stack.Commands.Required.forEach((command) => {
+        var cmd = command.cmd;
         this[cmd] = (resolve, reject) => {
-            console.log("module.interface", "method called", cmd);
-            this.module[cmd]((result) => {  resolve(result); }, (err) => { reject(err); });
+            this.module[cmd]((result) => {  resolve(result); }, (err) => { reject(err);  });
         }
     });
+
+
+    /* healthcheck */
+    this.healthcheck = (resolve, reject) => {
+        if(this.module.healthcheck){
+            this.module.healthcheck((result) => {  resolve(result); }, (err) => { reject(err);  });
+        }
+    }
+
+
 }
 
 

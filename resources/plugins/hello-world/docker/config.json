@@ -4,5 +4,10 @@
     {
       "@@http_port":80
     }
-  ]
+  ],
+  "mount": {
+    "host": "@@src",
+    "container": "/www",
+    "user": "www-user"
+  }
 }

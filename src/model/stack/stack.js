@@ -22,8 +22,10 @@ var Stack = function(data) {
     this.identifier = data.identifier;
     this.stack_file_location = data.stack_file_location;
     this.mode = data.mode;
-    this.provider = ProviderManager.LoadProvider(data.provider_id);
-    this.status = Stack.Statuses.pending;
+    this.provider_id = data.provider_id;
+    this.provider = ProviderManager.LoadProvider(this.provider_id);
+    this.status = data.status ? data.status : Stack.Statuses.pending;
+    this.error = data.error ? data.error : null;
     this.created_by = data.created_by;
     this.terminated_on = data.terminated_on;
 
@@ -47,7 +49,7 @@ var Stack = function(data) {
     }
     else
     {
-        this.services = [];
+        this.services = {};
 
         //no stack service datat defined yet, init it.
         Object.keys(this.haystack.services).forEach((key) => {
@@ -62,6 +64,7 @@ var Stack = function(data) {
     }
 
 
+
     //validate that the mode is supported by the provider.
     if(this.provider.modes.indexOf(this.mode) === -1)
     {
@@ -73,6 +76,21 @@ var Stack = function(data) {
 }
 
 
+Stack.prototype.update_service = function(service_id, status, error){
+
+    this.services[service_id].status = status;
+    if(error)
+    {
+        this.services[service_id].error = error;
+    }
+    else
+    {
+        this.services[service_id].error = null;
+    }
+
+    this.save();
+}
+
 
 Stack.prototype.getData = function(){
 
@@ -82,9 +100,11 @@ Stack.prototype.getData = function(){
         identifier: this.identifier,
         services: this.services,
         mode: this.mode,
+        provider_id: this.provider.id,
         provider: this.provider,
         stack_file_location: this.stack_file_location,
         status: this.status,
+        error: this.error,
         created_by: this.created_by,
         terminated_on: this.terminated_on,
         stack_file: this.stack_file
@@ -94,7 +114,7 @@ Stack.prototype.getData = function(){
 }
 
 
-Stack.prototype.update_status = function(status){
+Stack.prototype.update_status = function(status, error){
 
     this.stack_logger.log("info", "status update: " +  status);
 
@@ -103,6 +123,16 @@ Stack.prototype.update_status = function(status){
     }
 
     this.status = status;
+
+    if(error)
+    {
+        this.error = error;
+    }
+    else
+    {
+        this.error = null;
+    }
+
     this.save();
 }
 
@@ -114,6 +144,8 @@ Stack.prototype.save = function(){
 
 
     var data = this.getData();
+
+    //console.log("this.data", data);
 
     /* save new or existing stacks */
     if(this._id){
@@ -151,8 +183,20 @@ Stack.Modes = {
 }
 
 Stack.Commands = {
-    Required: ["start", "stop", "terminate", "inspect"],
+    Required: [
+        { cmd: "start", status_from: Stack.Statuses.starting, status_to: Stack.Statuses.running },
+        { cmd: "stop", status_from: Stack.Statuses.stopping, status_to: Stack.Statuses.stopped },
+        { cmd: "terminate", status_from: Stack.Statuses.terminating, status_to: Stack.Statuses.terminated },
+        { cmd: "inspect" }
+    ],
+
     Optional: ["ssh"]
+}
+
+Stack.Service = {
+    CommandToStatus: {
+
+    }
 }
 
 

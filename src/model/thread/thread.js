@@ -20,17 +20,27 @@ var Thread = function(path_to_include, args){
 Thread.prototype.receive = function(m){
     //get the original message
     var msg = this.messages[m.id];
-    if(m.state == "success"){
-        msg.success(m.data);
 
-        if(m.method == "terminate"){
-            this.exit();
-        }
-    }
-    else
+    if(msg)
     {
-        msg.fail(m.data);
+        if(m.state == "success"){
+            msg.success(m.data);
+            if(m.method == "terminate"){
+                this.exit();
+            }
+        }
+        else
+        {
+            msg.fail(m.data);
+        }
+
+        //remove the message.
+        this.messages = this.messages.filter(function(value){ return value.id == m.id;})
     }
+
+
+
+
 }
 
 Thread.prototype.call = function(method, data, on_success, on_fail){

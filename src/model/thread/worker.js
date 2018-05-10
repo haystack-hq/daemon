@@ -17,11 +17,13 @@ var Worker = function(process){
     this.obj = new Obj(object_args);
 
 
+
     this.process.on('message', (m) => {
+
+
 
         //validate method is implemented
         if(!this.obj[m.method]){
-            console.log("here");
             this.reply(m.id, m.method, "fail", "Method [" + m.method + "] not implemented.");
             return;
         }
@@ -37,6 +39,8 @@ var Worker = function(process){
                 this.reply(m.id, m.method, "fail", err);
             }
         );
+
+
     });
 
 

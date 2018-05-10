@@ -6,7 +6,7 @@ var bodyParser = require('body-parser');
 router.use(bodyParser.urlencoded({ extended: true }));
 router.use(bodyParser.json());
 var fs = require("fs-extra");
-var StackManager = require("../../model/stack/stack-manager");
+var StackController = require("../../model/stack/controller");
 
 
 
@@ -69,18 +69,21 @@ router.post('/', function (req, res) {
     try {
         var params = req.body;
         var path = params.stack_file_location;
+        var provider = params.provider;
+        var mode = params.mode;
 
+        var stack = req.stack_manager.load_from_path(path, null, provider, mode);
 
-        var stack = req.stack_manager.create_from_path(path, params);
-        stack.start();
+        console.log(stack);
+
+        var stack_controller = new StackController(stack);
+        stack_controller.start().then((result) => {}).catch((err) => {});
 
         res.status(200).send(stack.getData());
 
-
-
     }
     catch (ex){
-        res.status(401).send(ex);
+        res.status(401).send(ex.message);
     }
 
 
@@ -101,10 +104,10 @@ router.delete('/:identifier', function (req, res) {
     try
     {
         var stack = req.stack_manager.load(identifier);
+        var stack_controller = new StackController(stack);
 
-        console.log(stack);
+        stack_controller.terminate();
 
-        stack.terminate();
         res.status(200).send(stack.getData());
     }
     catch (ex){

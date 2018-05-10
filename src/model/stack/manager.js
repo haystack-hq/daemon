@@ -11,7 +11,7 @@ var homedir = require("homedir");
 var Promise = require('bluebird');
 var Logger = require("../../lib/logger");
 var findup = require('findup-sync');
-
+var StackConroller = require('../../model/stack/controller');
 
 var StackManager = function(db) {
     this.db = db;
@@ -96,7 +96,6 @@ StackManager.prototype.load = function(identifier){
     this.stacks.forEach((h) => {
         console.log("checking for stack", identifier);
        if(h.identifier == identifier){
-           console.log("found stack", h);
            stack = h;
        }
     });
@@ -120,8 +119,6 @@ StackManager.prototype.load = function(identifier){
 
 
     return stack;
-
-
 
 }
 
@@ -162,6 +159,9 @@ StackManager.prototype.init = function(){
 
     stacks.forEach((stack_data) => {
         var stack = this.load(stack_data.identifier);
+        var controller = new StackConroller(stack);
+
+
         this.stacks.push(stack);
     });
 

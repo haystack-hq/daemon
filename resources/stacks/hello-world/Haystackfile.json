@@ -4,14 +4,14 @@
       "plugin": "hello-world",
       "parameters": {
         "http_port": 4018,
-        "src": "./mycode"
+        "src": "./"
       }
     },
     "my-hello-world-app-2": {
       "plugin": "hello-world",
       "parameters": {
         "http_port": 4019,
-        "src": "./mycode"
+        "src": "./"
       }
     }
   }

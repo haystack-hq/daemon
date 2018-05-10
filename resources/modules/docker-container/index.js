@@ -49,6 +49,7 @@ Interface.prototype.start = function(done, err){
     var run_result = this.shell.exec(run_command, {silent:true});
     if(run_result.code !== 0) {
         err("Unable to start the docker container  [" + this.container_name + "]. " + run_result.stderr);
+
     }
 
     this.logger.log("info", "running-docker-container",  {command:  run_command });
@@ -81,6 +82,7 @@ Interface.prototype.terminate = function(done, err){
     if(check_result.code === 0 )
     {
         err("Unable to terminate the docker container  [" + this.container_name + "]. " + run_result.stderr);
+        return;
     }
 
     done();
@@ -89,9 +91,29 @@ Interface.prototype.terminate = function(done, err){
 
 Interface.prototype.healthcheck = function(done, err){
 
+    //validate that the container is running
+    var check_command = "docker inspect " + this.container_name;
+    var check_result = this.shell.exec(check_command, {silent:true});
+
+    if(check_result.code !== 0 )
+    {
+        err("Docker Container does not exist. " + check_result.stderr);
+        return;
+    }
+
+    //can inspect, parse result
+    var inspect = JSON.parse(check_result.stdout);
+    var state = inspect[0].State;
+    if(state.Running == false){
+        err("Docker Container is not running. Docker container status [" + state.Status + "] ");
+        return;
+    }
+
+    done();
 }
 
 Interface.prototype.ssh = function(done, err){
+
 
 }
 

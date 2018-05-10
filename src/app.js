@@ -9,7 +9,7 @@ var fs = require('fs-extra');
 var process = require('process');
 var fp = require("find-free-port");
 var PluginManager = require("./model/plugin/manager");
-var StackManager = require("./model/stack/stack-manager");
+var StackManager = require("./model/stack/manager");
 var db = require('./model/db/db-conn');
 
 
@@ -39,26 +39,15 @@ App.prototype.start = function(){
         this.stack_manager.init();
 
 
-
         //webserver + streams
         var webServer = new WebServer(this.config.agent_port, this.stack_manager);
         webServer.listen();
-
 
 
         //tasks
         var tasks = new Tasks(this.stack_manager);
         tasks.start();
 
-
-
-
-
-
-        //todo: we will be replacing this with a service plugin repository. But for now.
-        var plugins_dir = PluginManager.GetPluginDirectory();
-        fs.ensureDirSync(plugins_dir);
-        fs.copySync(path.join(__dirname,  "/tmp/helloworld"), path.join(plugins_dir, "helloworld") );
     });
 
 
@@ -71,7 +60,7 @@ App.prototype.start = function(){
 
 
 App.prototype.stop = function(){
-    this.docker_events.stop();
+    console.log("App.prototype.stop");
 
 }
 

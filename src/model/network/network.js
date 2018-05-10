@@ -24,6 +24,7 @@ var Network = function(path_to_network) {
 }
 
 Network.prototype.init = function(stack){
+    this.stack = stack;
 
     this.network_interface = new Thread(
         path.join(__dirname, "../network/interface.js"),

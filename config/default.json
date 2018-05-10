@@ -1,8 +1,11 @@
 {
   "stacks": {
-      "terminated_remove_after": 5,
+      "terminated_remove_after": 1,
       "default_networks": {
         "docker": "docker-bridge"
-      }
+      },
+     "service":  {
+       "health_check_interval": 500
+     }
   }
 }

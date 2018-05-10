@@ -12,12 +12,13 @@ var NetworkManager = require("../../../network/manager");
 var Thread = require("../../../thread/thread");
 var path = require("path");
 
-var StackInterface = function(stack){
+var StackInterface = function(stack, event_emitter){
     this.stack = stack;
+    this.event_emitter = event_emitter;
 
 
     /* network */
-    var network_ref = null; //todo: get newtork from stack file. For now we are using the defaults.
+    var network_ref = null; //todo: get network from stack file. For now we are using the defaults.
     this.stack.network = {
         name: "haystack-" + this.stack.identifier
     }
@@ -29,7 +30,7 @@ var StackInterface = function(stack){
     this.services = [];
     for (var service_id in this.stack.haystack.services) {
         var data = this.stack.haystack.services[service_id];
-        this.services.push(new ServiceInterface(service_id, data, this.stack));
+        this.services.push(new ServiceInterface(service_id, this.stack.services[service_id], data, this.stack, this.event_emitter));
     }
 
 }
@@ -41,23 +42,17 @@ StackInterface.prototype.start = function() {
         //start the network
         this.network.start().then((result) => {
 
-            var counter = 0;
-
             Promise.mapSeries(this.services, (service) => {
                 return service.start();
             }).then((res) => {
                 resolve();
-
             }).catch((err) =>{
                 reject(err);
             });
 
-
         }).catch((err) => {
             reject(err);
         })
-
-
 
     });
 }
@@ -66,8 +61,6 @@ StackInterface.prototype.start = function() {
 StackInterface.prototype.terminate = function() {
 
     return new Promise((resolve, reject)  => {
-
-        var counter = 0;
 
         //terminate each of the services.
         Promise.mapSeries(this.services, (service) => {
@@ -83,12 +76,6 @@ StackInterface.prototype.terminate = function() {
         }).catch((err) =>{
             reject(err);
         });
-
-
-
-
-
-
 
     });
 }
